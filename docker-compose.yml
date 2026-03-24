@@ -14,7 +14,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:password@db:5432/kora
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/kora_dev
     restart: unless-stopped
     depends_on:
       - db
