@@ -1,0 +1,49 @@
+# Docker Compose for kora
+# Full-stack container orchestration
+
+name: kora
+
+services:
+  server:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    container_name: kora-server
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:password@db:5432/kora
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - kora-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: kora-postgres
+    environment:
+      POSTGRES_DB: kora
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - kora_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - kora-network
+
+networks:
+  kora-network:
+    driver: bridge
+
+volumes:
+  kora_postgres_data:

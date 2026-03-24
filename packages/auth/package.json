@@ -1,0 +1,27 @@
+{
+  "name": "@kora/auth",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@better-auth/prisma-adapter": "^1.5.5",
+    "@kora/db": "workspace:*",
+    "@kora/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kora/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
