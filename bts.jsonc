@@ -1,6 +1,5 @@
-// Better Fullstack configuration file
+// Kora configuration file
 // safe to delete
-
 {
   "$schema": "https://better-fullstack-web.vercel.app/schema.json",
   "version": "1.4.15",
@@ -11,7 +10,11 @@
   "backend": "nestjs",
   "runtime": "node",
   "frontend": [],
-  "addons": ["biome", "husky", "turborepo"],
+  "addons": [
+    "biome",
+    "husky",
+    "turborepo"
+  ],
   "examples": [],
   "auth": "better-auth",
   "payments": "none",
@@ -58,5 +61,7 @@
   "goApi": "none",
   "goCli": "none",
   "goLogging": "none",
-  "aiDocs": ["agents-md"],
+  "aiDocs": [
+    "agents-md"
+  ],
 }

@@ -1,9 +1,13 @@
 import "reflect-metadata";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { auth } from "@kora/auth";
 import { env } from "@kora/env/server";
 import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "./app.module";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,8 +20,13 @@ async function bootstrap() {
   });
 
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.all("/api/auth/*path", async (req: any, _res: any) => {
-    return auth.handler(req);
+
+  // Serve static test files from public/
+  const { default: expressStatic } = await import("express");
+  expressApp.use(expressStatic.static(path.join(__dirname, "../public")));
+
+  expressApp.all("/api/auth/*path", async (req: unknown, _res: unknown) => {
+    return auth.handler(req as Request);
   });
 
   await app.listen(3000);

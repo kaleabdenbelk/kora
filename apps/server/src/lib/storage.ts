@@ -1,30 +1,34 @@
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  ListObjectsV2Command,
-  HeadObjectCommand,
   CopyObjectCommand,
-  type PutObjectCommandInput,
+  DeleteObjectCommand,
+  GetObjectCommand,
   type GetObjectCommandInput,
+  HeadObjectCommand,
+  ListObjectsV2Command,
   type ListObjectsV2CommandInput,
+  PutObjectCommand,
+  type PutObjectCommandInput,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { env } from "@kora/env/server";
 
 /**
  * AWS S3 client for file storage
  * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/
  */
+
 export const s3Client = new S3Client({
-  region: process.env.AWS_S3_REGION!,
+  region: env.AWS_S3_REGION,
+  endpoint: env.AWS_S3_ENDPOINT,
+  forcePathStyle: !!env.AWS_S3_ENDPOINT,
   credentials: {
-    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY!,
+    accessKeyId: env.AWS_S3_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_S3_SECRET_ACCESS_KEY,
   },
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
+const BUCKET_NAME = env.AWS_S3_BUCKET_NAME;
 
 /**
  * Storage utilities for common S3 operations
@@ -150,7 +154,7 @@ export async function listFiles(
 
   return {
     files: (response.Contents ?? []).map((item) => ({
-      key: item.Key!,
+      key: item.Key ?? "",
       size: item.Size,
       lastModified: item.LastModified,
     })),

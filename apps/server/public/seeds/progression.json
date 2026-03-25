@@ -1,0 +1,76 @@
+[
+  {
+    "id": "LINEAR_BEGINNER_4W",
+    "name": "Beginner Maintenance/Intro",
+    "type": "LINEAR",
+    "goal_mapping": "MAINTAIN",
+    "durationWeeks": 4,
+    "weeks": [
+      { "week": 1, "intensityPercent": 60, "volumeModifier": 1.0 },
+      { "week": 2, "intensityPercent": 65, "volumeModifier": 1.0 },
+      { "week": 3, "intensityPercent": 70, "volumeModifier": 0.95 },
+      { "week": 4, "deload": true, "intensityPercent": 55, "volumeModifier": 0.6 }
+    ]
+  },
+  {
+    "id": "LINEAR_HYPERTROPHY_4W",
+    "name": "Short Hypertrophy Burst",
+    "type": "LINEAR",
+    "goal_mapping": "MUSCLE_GAIN",
+    "durationWeeks": 4,
+    "weeks": [
+      { "week": 1, "intensityPercent": 65, "volumeModifier": 1.0 },
+      { "week": 2, "intensityPercent": 70, "volumeModifier": 1.05 },
+      { "week": 3, "intensityPercent": 75, "volumeModifier": 1.1 },
+      { "week": 4, "deload": true, "intensityPercent": 60, "volumeModifier": 0.7 }
+    ]
+  },
+  {
+    "id": "LINEAR_HYPERTROPHY_6W",
+    "name": "Standard Muscle Gain Cycle",
+    "type": "LINEAR",
+    "goal_mapping": "MUSCLE_GAIN",
+    "durationWeeks": 6,
+    "weeks": [
+      { "week": 1, "intensityPercent": 65, "volumeModifier": 1.0 },
+      { "week": 2, "intensityPercent": 70, "volumeModifier": 1.0 },
+      { "week": 3, "intensityPercent": 75, "volumeModifier": 1.05 },
+      { "week": 4, "intensityPercent": 80, "volumeModifier": 1.1 },
+      { "week": 5, "intensityPercent": 85, "volumeModifier": 1.15 },
+      { "week": 6, "deload": true, "intensityPercent": 60, "volumeModifier": 0.6 }
+    ]
+  },
+  {
+    "id": "LINEAR_FAT_LOSS_6W",
+    "name": "Weight Loss Muscle Retention",
+    "type": "LINEAR",
+    "goal_mapping": "MUSCLE_LOSE",
+    "durationWeeks": 6,
+    "weeks": [
+      { "week": 1, "intensityPercent": 70, "volumeModifier": 1.0 },
+      { "week": 2, "intensityPercent": 72, "volumeModifier": 1.0 },
+      { "week": 3, "intensityPercent": 75, "volumeModifier": 0.95 },
+      { "week": 4, "intensityPercent": 75, "volumeModifier": 0.95 },
+      { "week": 5, "intensityPercent": 78, "volumeModifier": 0.9 },
+      { "week": 6, "deload": true, "intensityPercent": 60, "volumeModifier": 0.7 }
+    ]
+  },
+  {
+    "id": "BLOCK_STRENGTH_9W",
+    "name": "Advanced Strength Block",
+    "type": "BLOCK",
+    "goal_mapping": "MUSCLE_GAIN",
+    "durationWeeks": 9,
+    "weeks": [
+      { "week": 1, "intensityPercent": 65, "volumeModifier": 1.2 },
+      { "week": 2, "intensityPercent": 70, "volumeModifier": 1.15 },
+      { "week": 3, "intensityPercent": 75, "volumeModifier": 1.1 },
+      { "week": 4, "intensityPercent": 80, "volumeModifier": 1.0 },
+      { "week": 5, "intensityPercent": 85, "volumeModifier": 0.95 },
+      { "week": 6, "intensityPercent": 90, "volumeModifier": 0.9 },
+      { "week": 7, "intensityPercent": 92, "volumeModifier": 0.8 },
+      { "week": 8, "intensityPercent": 95, "volumeModifier": 0.7 },
+      { "week": 9, "deload": true, "intensityPercent": 60, "volumeModifier": 0.5 }
+    ]
+  }
+]

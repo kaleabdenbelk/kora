@@ -1,6 +1,6 @@
 # kora
 
-This project was created with [Better Fullstack](https://github.com/Marve10s/Better-Fullstack), a modern TypeScript stack that combines Nestjs, TRPC, and more.
+This project was created with [Kora](https://github.com/Marve10s/Better-Fullstack), a modern TypeScript stack that combines Nestjs, TRPC, and more.
 
 ## Features
 

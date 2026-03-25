@@ -17,6 +17,7 @@
     "@trpc/client": "^11.13.4",
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
+    "ioredis": "^5.10.1",
     "zod": "catalog:"
   },
   "devDependencies": {

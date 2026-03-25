@@ -1,6 +1,10 @@
-import { Worker, type Job } from "bullmq";
+import { type Job, Worker } from "bullmq";
 
-import { connection, type EmailJobData, type NotificationJobData } from "./queue";
+import {
+  connection,
+  type EmailJobData,
+  type NotificationJobData,
+} from "./queue";
 
 /**
  * Email worker - processes email sending jobs
@@ -42,7 +46,9 @@ export const notificationWorker = new Worker<NotificationJobData>(
   async (job: Job<NotificationJobData>) => {
     const { userId, type } = job.data;
 
-    console.log(`Processing notification job ${job.id}: ${type} to user ${userId}`);
+    console.log(
+      `Processing notification job ${job.id}: ${type} to user ${userId}`,
+    );
 
     // TODO: Implement your notification logic here
     // Example:
@@ -85,7 +91,9 @@ notificationWorker.on("completed", (job) => {
 });
 
 notificationWorker.on("failed", (job, err) => {
-  console.error(`Notification job ${job?.id} has failed with error: ${err.message}`);
+  console.error(
+    `Notification job ${job?.id} has failed with error: ${err.message}`,
+  );
 });
 
 /**

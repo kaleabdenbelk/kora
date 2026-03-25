@@ -1,4 +1,8 @@
-import { SESClient, SendEmailCommand, SendRawEmailCommand } from "@aws-sdk/client-ses";
+import {
+  SESClient,
+  SendEmailCommand,
+  SendRawEmailCommand,
+} from "@aws-sdk/client-ses";
 
 // Initialize AWS SES client
 const sesClient = new SESClient({
@@ -27,9 +31,14 @@ export interface SendEmailOptions {
 export async function sendEmail(options: SendEmailOptions) {
   const { to, subject, html, text, from, replyTo, cc, bcc } = options;
 
-  const fromAddress = from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
+  const fromAddress =
+    from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
   const toAddresses = Array.isArray(to) ? to : [to];
-  const replyToAddresses = replyTo ? (Array.isArray(replyTo) ? replyTo : [replyTo]) : undefined;
+  const replyToAddresses = replyTo
+    ? Array.isArray(replyTo)
+      ? replyTo
+      : [replyTo]
+    : undefined;
   const ccAddresses = cc ? (Array.isArray(cc) ? cc : [cc]) : undefined;
   const bccAddresses = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined;
 
@@ -94,7 +103,8 @@ export interface SendRawEmailOptions {
 export async function sendRawEmail(options: SendRawEmailOptions) {
   const { to, subject, html, text, from, replyTo, attachments } = options;
 
-  const fromAddress = from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
+  const fromAddress =
+    from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
   const toAddresses = Array.isArray(to) ? to : [to];
 
   // Build MIME message
@@ -182,7 +192,9 @@ export async function sendBatchEmails(
     from?: string;
   }>,
 ) {
-  const results = await Promise.allSettled(emails.map((email) => sendEmail(email)));
+  const results = await Promise.allSettled(
+    emails.map((email) => sendEmail(email)),
+  );
 
   const successful = results.filter((r) => r.status === "fulfilled").length;
   const failed = results.filter((r) => r.status === "rejected").length;
@@ -197,7 +209,9 @@ export async function sendBatchEmails(
     results: results.map((r, i) => ({
       email: emails[i]?.to,
       status: r.status,
-      ...(r.status === "fulfilled" ? { messageId: r.value.messageId } : { error: r.reason }),
+      ...(r.status === "fulfilled"
+        ? { messageId: r.value.messageId }
+        : { error: r.reason }),
     })),
   };
 }
@@ -209,4 +223,4 @@ export function getSESClient() {
   return sesClient;
 }
 
-export { sesClient, SESClient, SendEmailCommand, SendRawEmailCommand };
+export { SESClient, SendEmailCommand, SendRawEmailCommand, sesClient };

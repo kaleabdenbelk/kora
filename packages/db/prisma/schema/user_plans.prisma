@@ -1,0 +1,57 @@
+model UserPlan {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId       String?
+  program         Program?         @relation(fields: [programId], references: [id])
+  planJson        Json?            // Snapshot for performance
+  startDate       DateTime
+  endDate         DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  sessions        UserSession[]
+
+  @@index([userId])
+  @@map("user_plans")
+}
+
+model UserSession {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             UserPlan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  dayNumber        Int
+  week             Int
+  planned          Json
+  completed        Json?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  completedStatus  Boolean           @default(false)
+  exercises        UserExerciseLog[]
+
+  @@index([userId])
+  @@index([planId])
+  @@map("user_sessions")
+}
+
+model UserExerciseLog {
+  id               String      @id @default(cuid())
+  sessionId        String
+  session          UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId       String
+  exercise         Exercise    @relation(fields: [exerciseId], references: [id])
+  plannedSets      Int
+  plannedReps      String
+  actualSets       Int?
+  completed        Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  weightsPerSet    Json?
+  repsPerSet       Json?
+  notes            String?
+
+  @@index([sessionId])
+  @@map("user_exercise_logs")
+}

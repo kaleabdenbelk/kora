@@ -1,0 +1,111 @@
+model Exercise {
+  id                String              @id
+  name              String
+  instructions      String[]
+  gifUrl            String?
+  categoryId        Int?
+  movementPatternId Int?
+  type              ExerciseType
+  split             Split?
+  tags              String[]
+  alternativeIds    String[]
+  difficultyRpeMax  Int?
+  difficultyRpeMin  Int?
+  restMin           Int?
+  restMax           Int?
+  defaultSets       Int?
+  defaultReps       String?
+  metValue          Float?
+  caloriesPerSetAvg Int?
+  environment       ExerciseEnvironment @default(GYM)
+  level             ExerciseLevel       @default(INTERMEDIATE)
+  equipment         ExerciseEquipment[]
+  muscles           ExerciseMuscle[]
+  category          Category?           @relation(fields: [categoryId], references: [id])
+  movementPattern   MovementPattern?    @relation(fields: [movementPatternId], references: [id])
+  templates         ExerciseTemplate[]
+  userExerciseLogs  UserExerciseLog[]
+
+  @@map("exercises")
+}
+
+// Removed ExerciseAlternative; we now use alternativeIds natively
+
+model Muscle {
+  id        Int              @id @default(autoincrement())
+  name      String           @unique
+  exercises ExerciseMuscle[]
+
+  @@map("muscles")
+}
+
+model Equipment {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique
+  exercises ExerciseEquipment[]
+
+  @@map("equipment")
+}
+
+model MovementPattern {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  exercises Exercise[]
+
+  @@map("movement_patterns")
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  exercises Exercise[]
+
+  @@map("categories")
+}
+
+model ExerciseMuscle {
+  exerciseId           String
+  muscleId             Int
+  role                 MuscleRole
+  activationMultiplier Float      @default(1.0)
+  exercise             Exercise   @relation(fields: [exerciseId], references: [id])
+  muscle               Muscle     @relation(fields: [muscleId], references: [id])
+
+  @@id([exerciseId, muscleId, role])
+  @@map("exercise_muscles")
+}
+
+model ExerciseEquipment {
+  exerciseId  String
+  equipmentId Int
+  exercise    Exercise  @relation(fields: [exerciseId], references: [id])
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+
+  @@id([exerciseId, equipmentId])
+  @@map("exercise_equipment")
+}
+
+enum ExerciseType {
+  COMPOUND
+  ISOLATION
+}
+
+enum MuscleRole {
+  PRIMARY
+  SECONDARY
+  STABILIZER
+}
+
+enum ExerciseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Split {
+  PUSH
+  PULL
+  LEGS
+  CORE
+  FULL_BODY
+}

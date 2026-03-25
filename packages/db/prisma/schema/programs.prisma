@@ -1,0 +1,67 @@
+model Program {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  goal          TrainingGoal
+  level         ExperienceLevel
+  durationWeeks Int
+  phases        Phase[]
+  selections    ProgramSelection[]
+  userPlans     UserPlan[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("programs")
+}
+
+model Phase {
+  id            String    @id @default(cuid())
+  programId     String
+  program       Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name          String
+  order         Int
+  durationWeeks Int
+  workouts      WorkoutTemplate[]
+
+  @@map("phases")
+}
+
+model WorkoutTemplate {
+  id        String    @id @default(cuid())
+  phaseId   String
+  phase     Phase     @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  name      String
+  dayNumber Int
+  exercises ExerciseTemplate[]
+
+  @@map("workout_templates")
+}
+
+model ExerciseTemplate {
+  id                String          @id @default(cuid())
+  workoutTemplateId String
+  workoutTemplate   WorkoutTemplate @relation(fields: [workoutTemplateId], references: [id], onDelete: Cascade)
+  exerciseId        String
+  exercise          Exercise        @relation(fields: [exerciseId], references: [id])
+  order             Int
+  sets              Int
+  reps              String
+  intensity         String?         // RPE or %
+  restTime          Int?            // in seconds
+
+  @@map("exercise_templates")
+}
+
+model ProgramSelection {
+  id          String          @id @default(cuid())
+  goal        TrainingGoal
+  level       ExperienceLevel
+  daysPerWeek Int
+  gender      Gender
+  programId   String
+  program     Program         @relation(fields: [programId], references: [id])
+
+  @@unique([goal, level, daysPerWeek, gender])
+  @@map("program_selections")
+}

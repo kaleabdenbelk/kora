@@ -1,4 +1,8 @@
-import { Module, type MiddlewareConsumer, type NestModule } from "@nestjs/common";
+import {
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from "@nestjs/common";
 
 import { TrpcMiddleware } from "./trpc.middleware";
 

@@ -1,0 +1,63 @@
+model Onboarding {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  preferredName       String?
+  gender              Gender?
+  age                 Int?
+  weight              Float?
+  targetWeight        Float?
+  height              Float?
+  bmi                 Float?
+  sleepHours          Float?
+  waterDaily          Float?
+  trainingLevel       ExperienceLevel?
+  trainingEnvironment ExerciseEnvironment?
+  trainingDaysPerWeek Int?
+  workoutDays         DayOfWeek[]
+  goal                TrainingGoal?
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@map("onboarding")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ExerciseEnvironment {
+  GYM
+  HOME
+  OUTDOOR
+  ANY
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum TrainingGoal {
+  HYPERTROPHY
+  STRENGTH
+  POWERBUILDING
+  FAT_LOSS
+  MAINTENANCE
+}

@@ -67,6 +67,9 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "double"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   },
   "css": {

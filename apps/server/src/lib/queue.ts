@@ -1,4 +1,4 @@
-import { Queue, type ConnectionOptions } from "bullmq";
+import { type ConnectionOptions, Queue } from "bullmq";
 
 export const connection: ConnectionOptions = {
   host: process.env.REDIS_HOST || "localhost",
@@ -51,7 +51,10 @@ export async function queueEmail(
 /**
  * Add a notification job to the queue
  */
-export async function queueNotification(data: NotificationJobData, options?: { delay?: number }) {
+export async function queueNotification(
+  data: NotificationJobData,
+  options?: { delay?: number },
+) {
   return notificationQueue.add("send-notification", data, {
     delay: options?.delay,
     attempts: 3,
@@ -72,7 +75,11 @@ export async function scheduleRecurringJob<T>(
   data: T,
   pattern: string, // Cron pattern
 ) {
-  return queue.upsertJobScheduler(name, { pattern }, { name, data: data as object });
+  return queue.upsertJobScheduler(
+    name,
+    { pattern },
+    { name, data: data as object },
+  );
 }
 
 /**

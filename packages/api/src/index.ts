@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 
 import type { Context } from "./context";
+import { createRateLimiter } from "./middlewares/rate-limit";
 
 export const t = initTRPC.context<Context>().create();
 
@@ -23,3 +24,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+// A protected procedure with a customizable rate limit
+export const rateLimitedProcedure = (windowMs: number, maxRequests: number, prefix = "std") => 
+  protectedProcedure.use(createRateLimiter(windowMs, maxRequests, prefix));
