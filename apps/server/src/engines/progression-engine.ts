@@ -11,7 +11,9 @@ const MAX_WEIGHT_INCREMENT = 5; // Limit max jump to 5kg for safety
 
 export const ProgressionOptionsSchema = z.object({
   plannedSets: z.number().int().positive(),
-  plannedReps: z.string().regex(/^\d+(-\d+)?$/, "Invalid rep range format (e.g., '8' or '8-12')"),
+  plannedReps: z
+    .string()
+    .regex(/^\d+(-\d+)?$/, "Invalid rep range format (e.g., '8' or '8-12')"),
   lastFatigue: z.number().min(1).max(10).optional(),
 });
 
@@ -33,12 +35,14 @@ export class ProgressionEngine {
   async calculateNextTargets(
     userId: string,
     exerciseId: string,
-    options: ProgressionOptions
+    options: ProgressionOptions,
   ): Promise<ProgressionResult> {
     // 0. Security: Validate input options
     const validated = ProgressionOptionsSchema.safeParse(options);
     if (!validated.success) {
-      throw new Error(`Invalid progression options: ${validated.error.message}`);
+      throw new Error(
+        `Invalid progression options: ${validated.error.message}`,
+      );
     }
 
     const { plannedReps, lastFatigue } = validated.data;
@@ -73,7 +77,11 @@ export class ProgressionEngine {
     const rawWeights = latestLog.weightsPerSet as any[];
     const rawRpes = (latestLog.rpePerSet as any[]) || [];
 
-    if (!Array.isArray(rawReps) || !Array.isArray(rawWeights) || rawReps.length === 0) {
+    if (
+      !Array.isArray(rawReps) ||
+      !Array.isArray(rawWeights) ||
+      rawReps.length === 0
+    ) {
       return {
         weight: 0,
         reps: plannedReps,
@@ -83,24 +91,32 @@ export class ProgressionEngine {
     }
 
     // Safety: Filter and sanitize data
-    const validReps = rawReps.filter((r): r is number => typeof r === "number" && r >= 0);
-    const validWeights = rawWeights.filter((w): w is number => typeof w === "number" && w >= 0);
-    const validRpes = rawRpes.filter((r): r is number => typeof r === "number" && r >= 1 && r <= 10);
+    const validReps = rawReps.filter(
+      (r): r is number => typeof r === "number" && r >= 0,
+    );
+    const validWeights = rawWeights.filter(
+      (w): w is number => typeof w === "number" && w >= 0,
+    );
+    const validRpes = rawRpes.filter(
+      (r): r is number => typeof r === "number" && r >= 1 && r <= 10,
+    );
 
-    const avgRpe = validRpes.length > 0 
-      ? validRpes.reduce((a, b) => a + b, 0) / validRpes.length 
-      : 8;
+    const avgRpe =
+      validRpes.length > 0
+        ? validRpes.reduce((a, b) => a + b, 0) / validRpes.length
+        : 8;
 
     const lastWeight = validWeights[0] || 0;
-    const sessionFatigue = lastFatigue ?? (latestLog.session as any).fatigue ?? 5;
+    const sessionFatigue =
+      lastFatigue ?? (latestLog.session as any).fatigue ?? 5;
 
     let nextWeight = lastWeight;
     let nextReps = plannedReps;
     let note = "";
 
     // Progression Logic
-    const hitMaxRepsAllSets = validReps.every(r => r >= maxReps);
-    const hitBelowMinAnySet = validReps.some(r => r < minReps);
+    const hitMaxRepsAllSets = validReps.every((r) => r >= maxReps);
+    const hitBelowMinAnySet = validReps.some((r) => r < minReps);
 
     // High Fatigue Adjustment
     if (sessionFatigue > 8) {
@@ -119,9 +135,10 @@ export class ProgressionEngine {
 
     if (hitMaxRepsAllSets && avgRpe < 9) {
       // LEVEL UP
-      const proposedIncrement = 2.5; 
+      const proposedIncrement = 2.5;
       const actualIncrement = Math.min(proposedIncrement, MAX_WEIGHT_INCREMENT);
-      nextWeight = lastWeight > 0 ? lastWeight + actualIncrement : actualIncrement;
+      nextWeight =
+        lastWeight > 0 ? lastWeight + actualIncrement : actualIncrement;
       nextReps = `${minReps}-${minReps + 1}`;
       note = `Progressing to ${nextWeight}kg. Strong performance last time!`;
     } else if (hitBelowMinAnySet || avgRpe >= 9.5) {
@@ -129,9 +146,11 @@ export class ProgressionEngine {
       nextWeight = lastWeight;
       nextReps = `${minReps}-${minReps}`;
       if (avgRpe >= 10) {
-        note = "Last session was extremely high intensity. Suggesting a slight deload focus on technique.";
+        note =
+          "Last session was extremely high intensity. Suggesting a slight deload focus on technique.";
       } else {
-        note = "Last session was very challenging. Focus on form and reaching the minimum rep target.";
+        note =
+          "Last session was very challenging. Focus on form and reaching the minimum rep target.";
       }
     } else {
       // STEADY
@@ -150,8 +169,9 @@ export class ProgressionEngine {
   }
 
   private parseRepRange(reps: string): [number, number] {
-    const parts = reps.split("-").map(p => parseInt(p.trim(), 10));
-    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return [parts[0], parts[1]];
+    const parts = reps.split("-").map((p) => Number.parseInt(p.trim(), 10));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]))
+      return [parts[0], parts[1]];
     if (parts.length === 1 && !isNaN(parts[0])) return [parts[0], parts[0]];
     return [8, 12]; // Default fallback
   }

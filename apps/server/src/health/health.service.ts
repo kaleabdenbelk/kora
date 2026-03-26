@@ -24,8 +24,8 @@ export class HealthService implements OnModuleInit {
     try {
       await prisma.$queryRaw`SELECT 1`;
       this.logger.log("✅ Postgres: Connected (kora_dev)");
-    } catch (error: any) {
-      this.logger.error("❌ Postgres: Connection Failed", error.message);
+    } catch (error: unknown) {
+      this.logger.error("❌ Postgres: Connection Failed", error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -44,10 +44,10 @@ export class HealthService implements OnModuleInit {
         `✅ Redis: Connected (${env.REDIS_HOST}:${env.REDIS_PORT})`,
       );
       await redis.quit();
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
         `❌ Redis: Connection Failed (${env.REDIS_HOST}:${env.REDIS_PORT})`,
-        error.message,
+        error instanceof Error ? error.message : String(error),
       );
     }
   }
@@ -67,8 +67,8 @@ export class HealthService implements OnModuleInit {
     try {
       await s3.send(new ListBucketsCommand({}));
       this.logger.log(`✅ AWS S3: Connected (${env.AWS_S3_BUCKET_NAME})`);
-    } catch (error: any) {
-      this.logger.error("❌ AWS S3: Connection Failed", error.message);
+    } catch (error: unknown) {
+      this.logger.error("❌ AWS S3: Connection Failed", error instanceof Error ? error.message : String(error));
     }
 
     // 2. SES
@@ -83,7 +83,7 @@ export class HealthService implements OnModuleInit {
     try {
       await ses.send(new GetSendQuotaCommand({}));
       this.logger.log("✅ AWS SES: Ready");
-    } catch (error) {
+    } catch (_error) {
       // In local dev without real SES keys, this might fail, which is often expected
       this.logger.warn(
         "⚠️ AWS SES: Skipping or Not Configured (Expected in local dev)",

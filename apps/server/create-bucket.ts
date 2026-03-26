@@ -16,11 +16,9 @@ async function main() {
   try {
     await s3.send(new CreateBucketCommand({ Bucket: bucket }));
     console.log(`Bucket '${bucket}' created successfully.`);
-  } catch (error: any) {
-    if (
-      error.name === "BucketAlreadyOwnedByYou" ||
-      error.name === "BucketAlreadyExists"
-    ) {
+  } catch (error: unknown) {
+    const name = error instanceof Error ? (error as NodeJS.ErrnoException).code ?? error.name : undefined;
+    if (name === "BucketAlreadyOwnedByYou" || name === "BucketAlreadyExists") {
       console.log(`Bucket '${bucket}' already exists.`);
     } else {
       console.error("Error creating bucket:", error);

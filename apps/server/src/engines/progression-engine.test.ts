@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { PrismaClient } from "@prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgressionEngine } from "./progression-engine";
-import { PrismaClient } from "@prisma/client";
 
 // Mock Prisma
 const prismaMock = {
@@ -18,7 +18,7 @@ describe("ProgressionEngine", () => {
   });
 
   it("should return base targets if no history exists", async () => {
-    (prismaMock.userExerciseLog.findFirst as any).mockResolvedValue(null);
+    vi.mocked(prismaMock.userExerciseLog.findFirst).mockResolvedValue(null);
 
     const result = await engine.calculateNextTargets("user1", "ex1", {
       plannedSets: 3,
@@ -31,7 +31,7 @@ describe("ProgressionEngine", () => {
   });
 
   it("should increase weight if max reps were hit and RPE is low", async () => {
-    (prismaMock.userExerciseLog.findFirst as any).mockResolvedValue({
+    vi.mocked(prismaMock.userExerciseLog.findFirst).mockResolvedValue({
       repsPerSet: [12, 12, 12],
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 8, 8],
@@ -49,7 +49,7 @@ describe("ProgressionEngine", () => {
   });
 
   it("should maintain weight and focus on reps if some sets were below max", async () => {
-    (prismaMock.userExerciseLog.findFirst as any).mockResolvedValue({
+    vi.mocked(prismaMock.userExerciseLog.findFirst).mockResolvedValue({
       repsPerSet: [12, 10, 8],
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 9, 9],
@@ -67,7 +67,7 @@ describe("ProgressionEngine", () => {
   });
 
   it("should maintain weight and focus on min reps if RPE is very high", async () => {
-    (prismaMock.userExerciseLog.findFirst as any).mockResolvedValue({
+    vi.mocked(prismaMock.userExerciseLog.findFirst).mockResolvedValue({
       repsPerSet: [12, 12, 12],
       weightsPerSet: [20, 20, 20],
       rpePerSet: [10, 10, 10],
@@ -85,7 +85,7 @@ describe("ProgressionEngine", () => {
   });
 
   it("should cap progression if high fatigue is detected", async () => {
-    (prismaMock.userExerciseLog.findFirst as any).mockResolvedValue({
+    vi.mocked(prismaMock.userExerciseLog.findFirst).mockResolvedValue({
       repsPerSet: [12, 12, 12],
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 8, 8],
