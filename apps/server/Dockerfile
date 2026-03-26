@@ -1,45 +1,51 @@
-# Dockerfile for kora server
-# Optimized multi-stage build for Docker deployment
+# ---- Stage 1: Pruner ----
+FROM node:20-alpine AS pruner
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY . .
+# Isolate the server package and its local dependencies
+RUN pnpm dlx turbo prune server --docker
 
-# Build stage
-FROM node:20-alpine AS builder
-
+# ---- Stage 2: Installer ----
+FROM node:20-alpine AS installer
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
-# Install pnpm/yarn if needed
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY apps/server/package.json ./apps/server/
-COPY packages/db/package.json ./packages/db/
-
-# Install dependencies
+# First, install dependencies (this layer is cached if pnpm-lock.yaml doesn't change)
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
-COPY . .
+# ---- Stage 3: Builder ----
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
 
-# Build the application
-RUN pnpm run build --filter=@kora/server
+# Copy the node_modules from installer and the full source from pruner
+COPY --from=installer /app/ .
+COPY --from=pruner /app/out/full/ .
+COPY turbo.json turbo.json
 
-# Production stage
+# Build the server (and its workspace dependencies)
+RUN pnpm turbo run build --filter=server
+
+# ---- Stage 4: Runner ----
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Copy built application and production dependencies
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --from=builder /app/apps/server/package.json ./apps/server/package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages ./packages
 
-# Copy built application
-COPY --from=builder /app/apps/server/dist ./dist
-COPY --from=builder /app/apps/server/package.json ./
+EXPOSE $PORT
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
-
-EXPOSE 3000
-
+# Start from the app directory
+WORKDIR /app/apps/server
 CMD ["node", "dist/index.js"]

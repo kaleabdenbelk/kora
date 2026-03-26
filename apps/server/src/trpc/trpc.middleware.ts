@@ -12,6 +12,7 @@ export class TrpcMiddleware implements NestMiddleware {
   });
 
   use(req: Request, res: Response, next: NextFunction) {
+    console.log(`[tRPC] ${req.method} ${req.originalUrl}`);
     this.trpcMiddleware(req, res, next);
   }
 }

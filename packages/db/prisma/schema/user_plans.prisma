@@ -9,6 +9,7 @@ model UserPlan {
   endDate         DateTime?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean          @default(false)
   sessions        UserSession[]
 
   @@index([userId])
@@ -29,6 +30,7 @@ model UserSession {
   completedAt      DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+  isDeleted        Boolean           @default(false)
   completedStatus  Boolean           @default(false)
   fatigue          Int?              // 1-10 overall session fatigue
   exercises        UserExerciseLog[]
@@ -53,6 +55,9 @@ model UserExerciseLog {
   repsPerSet       Json?
   rpePerSet        Json?       // Intensity per set
   notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  isDeleted        Boolean     @default(false)
 
   @@index([sessionId])
   @@map("user_exercise_logs")

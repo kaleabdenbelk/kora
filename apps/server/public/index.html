@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kora | Testbed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #bb86fc;
+            --secondary: #03dac6;
+            --text: #e0e0e0;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgba(187, 134, 252, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(3, 218, 198, 0.05) 0%, transparent 40%);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        p.subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 500px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            width: 90%;
+            max-width: 1000px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(187, 134, 252, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin: 0 0 1rem 0;
+            color: var(--accent);
+        }
+
+        .card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .card .icon {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-dot {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            margin-top: 4rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+
+    <header>
+        <h1>KORA</h1>
+        <p class="subtitle">System testbed for authentication, onboarding, and progression engine.</p>
+    </header>
+
+    <div class="grid">
+        <a href="auth.html" class="card">
+            <div class="status-dot"></div>
+            <div class="icon">🔐</div>
+            <h2>Auth flow</h2>
+            <p>Test user registration, login, and session persistence using Better-Auth.</p>
+        </a>
+
+        <a href="onboarding.html" class="card">
+            <div class="status-dot"></div>
+            <div class="icon">📋</div>
+            <h2>Onboarding</h2>
+            <p>Update user profile data and verify automatic workout plan generation.</p>
+        </a>
+
+        <a href="progression.html" class="card">
+            <div class="status-dot" style="background: #ff7597; box-shadow: 0 0 10px #ff7597;"></div>
+            <div class="icon">📈</div>
+            <h2>Progression</h2>
+            <p>Verify the Double Progression Engine logic with mock session data.</p>
+        </a>
+    </div>
+
+    <footer>
+        &copy; 2026 Kora Fitness | Developer Testbed
+    </footer>
+</body>
+</html>

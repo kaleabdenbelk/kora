@@ -60,13 +60,21 @@ export class PlanService {
     });
 
     if (!selection) {
+      console.error(`[PlanService] No matching program found for:`, {
+        goal: profile.goal,
+        level: profile.trainingLevel,
+        days: profile.trainingDaysPerWeek,
+        gender: profile.gender,
+      });
       throw new Error("No matching program template found for your profile.");
     }
 
+    console.log(`[PlanService] Program found: ${selection.program.name}. Creating UserPlan...`);
     const { program } = selection;
 
     // 3. Create the UserPlan and its sessions in a transaction
     return await prisma.$transaction(async (tx) => {
+      console.log(`[PlanService] Starting transaction...`);
       const startDate = new Date();
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + program.durationWeeks * 7);
@@ -119,7 +127,8 @@ export class PlanService {
   }
 
   async getActivePlan(userId: string) {
-    return prisma.userPlan.findFirst({
+    console.log(`[PlanService] Getting active plan for ${userId}...`);
+    const plan = await prisma.userPlan.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
       include: {
@@ -128,5 +137,7 @@ export class PlanService {
         },
       },
     });
+    console.log(`[PlanService] Plan found: ${!!plan}`);
+    return plan;
   }
 }

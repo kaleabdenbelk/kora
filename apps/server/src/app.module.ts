@@ -8,7 +8,6 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
 import { S3TestModule } from "./s3-test/s3-test.module";
-import { TrpcModule } from "./trpc/trpc.module";
 
 @Module({
   imports: [
@@ -37,7 +36,6 @@ import { TrpcModule } from "./trpc/trpc.module";
         password: env.REDIS_PASSWORD || undefined,
       }),
     }),
-    TrpcModule,
     S3TestModule,
   ],
   controllers: [AppController],

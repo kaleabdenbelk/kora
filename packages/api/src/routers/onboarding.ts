@@ -30,9 +30,11 @@ const onboardingSchema = z.object({
 
 export const onboardingRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
+    console.log(`[ONBOARDING] Fetching onboarding for user: ${ctx.session.user.id}`);
     const onboarding = await prisma.onboarding.findUnique({
       where: { userId: ctx.session.user.id },
     });
+    console.log(`[ONBOARDING] Onboarding found: ${!!onboarding}`);
     return onboarding;
   }),
 
@@ -40,6 +42,9 @@ export const onboardingRouter = router({
   update: rateLimitedProcedure(60000, 10, "onboarding:update")
     .input(onboardingSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log(`[ONBOARDING] Update requested for user: ${ctx.session.user.id}`);
+      console.log(`[ONBOARDING] Input:`, input);
+      console.log(`[ONBOARDING] Starting upsert for user: ${ctx.session.user.id}`);
       const onboarding = await prisma.onboarding.upsert({
         where: { userId: ctx.session.user.id },
         update: input,
@@ -48,23 +53,26 @@ export const onboardingRouter = router({
           userId: ctx.session.user.id,
         },
       });
+      console.log(`[ONBOARDING] Upsert completed.`);
 
       // Trigger plan generation if profile is complete
-      if (
-        onboarding.goal &&
-        onboarding.trainingLevel &&
-        onboarding.trainingDaysPerWeek &&
-        onboarding.gender
-      ) {
+      const isComplete = !!(onboarding.goal && onboarding.trainingLevel && onboarding.trainingDaysPerWeek && onboarding.gender);
+      
+      if (isComplete) {
         try {
+          console.log(`[ONBOARDING] Triggering plan generation for ${ctx.session.user.id}...`);
           await planService.generatePlan(ctx.session.user.id);
+          console.log(`[ONBOARDING] Plan generated successfully.`);
         } catch (error) {
-          console.error(
-            "Failed to generate plan on onboarding completion:",
-            error,
-          );
-          // We don't throw here to avoid failing the onboarding update itself
+          console.warn(`[ONBOARDING] Plan generation skipped or failed: ${error.message}`);
         }
+      } else {
+        console.log(`[ONBOARDING] Profile not yet complete for plan generation:`, {
+          goal: onboarding.goal,
+          level: onboarding.trainingLevel,
+          days: onboarding.trainingDaysPerWeek,
+          gender: onboarding.gender
+        });
       }
 
       return onboarding;

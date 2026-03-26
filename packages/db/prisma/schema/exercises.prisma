@@ -25,6 +25,9 @@ model Exercise {
   movementPattern   MovementPattern?    @relation(fields: [movementPatternId], references: [id])
   templates         ExerciseTemplate[]
   userExerciseLogs  UserExerciseLog[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  isDeleted         Boolean             @default(false)
 
   @@map("exercises")
 }
@@ -35,6 +38,9 @@ model Muscle {
   id        Int              @id @default(autoincrement())
   name      String           @unique
   exercises ExerciseMuscle[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  isDeleted Boolean          @default(false)
 
   @@map("muscles")
 }
@@ -43,6 +49,9 @@ model Equipment {
   id        Int                 @id @default(autoincrement())
   name      String              @unique
   exercises ExerciseEquipment[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  isDeleted Boolean             @default(false)
 
   @@map("equipment")
 }
@@ -51,6 +60,9 @@ model MovementPattern {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   exercises Exercise[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
 
   @@map("movement_patterns")
 }
@@ -59,6 +71,9 @@ model Category {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   exercises Exercise[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
 
   @@map("categories")
 }

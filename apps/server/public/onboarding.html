@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- V2: Non-Batched tRPC -->
+    <title>Kora - Onboarding Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #bb86fc;
+            --secondary: #03dac6;
+            --text: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --error: #cf6679;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group.full { grid-column: span 2; }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        select option { background: var(--bg); }
+
+        button {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            color: var(--bg);
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.2s;
+        }
+
+        button:hover { transform: translateY(-2px); }
+
+        #status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .message-box {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Profile Onboarding</h1>
+        <div class="message-box">
+            Complete your profile to trigger <strong>Automated Plan Generation</strong>. 
+            Once Goal, Level, Days, and Gender are set, the system will build your personalized training block.
+        </div>
+
+        <form id="onboardingForm" class="form-grid">
+            <div class="form-group full">
+                <label>Preferred Name</label>
+                <input type="text" id="preferredName" placeholder="How should we call you?">
+            </div>
+            
+            <div class="form-group">
+                <label>Gender *</label>
+                <select id="gender" required>
+                    <option value="">Select...</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="age" value="25">
+            </div>
+
+            <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" id="weight" step="0.1" value="75">
+            </div>
+
+            <div class="form-group">
+                <label>Training Days / Week *</label>
+                <input type="number" id="trainingDaysPerWeek" min="1" max="7" value="3" required>
+            </div>
+
+            <div class="form-group full">
+                <label>Training Goal *</label>
+                <select id="goal" required>
+                    <option value="">Select Goal...</option>
+                    <option value="HYPERTROPHY">Hypertrophy (Muscle Build)</option>
+                    <option value="STRENGTH">Strength (Powerlifting Focus)</option>
+                    <option value="POWERBUILDING">Powerbuilding</option>
+                    <option value="FAT_LOSS">Fat Loss / Conditioning</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <label>Experience Level *</label>
+                <select id="trainingLevel" required>
+                    <option value="">Select Level...</option>
+                    <option value="BEGINNER">Beginner (0-1 years)</option>
+                    <option value="INTERMEDIATE">Intermediate (1-3 years)</option>
+                    <option value="ADVANCED">Advanced (3+ years)</option>
+                </select>
+            </div>
+
+            <div class="form-group full">
+                <button type="submit" id="submitBtn">Update & Generate Plan</button>
+            </div>
+        </form>
+
+        <div id="status"></div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="plan.html" id="viewPlanBtn" style="display: none; color: var(--secondary); text-decoration: none; font-weight: 600;">View Generated Plan →</a>
+            <br><br>
+            <a href="index.html" style="color: var(--text-dim); text-decoration: none; font-size: 0.85rem;">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Simple tRPC Fetcher (Non-Batched)
+        async function trpc(path, input = {}, type = 'query') {
+            try {
+                const url = type === 'query' 
+                    ? `/trpc/${path}?input=${encodeURIComponent(JSON.stringify(input))}`
+                    : `/trpc/${path}`;
+                
+                const options = {
+                    method: type === 'query' ? 'GET' : 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (type === 'mutation') options.body = JSON.stringify(input);
+
+                const res = await fetch(url, options);
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw data.error || { message: `HTTP Error ${res.status}` };
+                }
+
+                return data.result.data;
+            } catch (err) {
+                console.error(`[tRPC Error] ${path}:`, err);
+                throw err;
+            }
+        }
+
+        // Initialize form with current data
+        async function init() {
+            try {
+                const profile = await trpc('onboarding.get');
+                if (profile) {
+                    document.getElementById('preferredName').value = profile.preferredName || '';
+                    document.getElementById('gender').value = profile.gender || '';
+                    document.getElementById('age').value = profile.age || 25;
+                    document.getElementById('weight').value = profile.weight || 75;
+                    document.getElementById('trainingDaysPerWeek').value = profile.trainingDaysPerWeek || 3;
+                    document.getElementById('goal').value = profile.goal || '';
+                    document.getElementById('trainingLevel').value = profile.trainingLevel || '';
+                }
+            } catch (err) {
+                console.error("Failed to load profile", err);
+                if (err.code === 'UNAUTHORIZED') window.location.href = 'auth.html';
+            }
+        }
+
+        document.getElementById('onboardingForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            status.style.display = 'none';
+
+            const payload = {
+                preferredName: document.getElementById('preferredName').value,
+                gender: document.getElementById('gender').value,
+                age: parseInt(document.getElementById('age').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                trainingDaysPerWeek: parseInt(document.getElementById('trainingDaysPerWeek').value),
+                goal: document.getElementById('goal').value,
+                trainingLevel: document.getElementById('trainingLevel').value
+            };
+            
+            // Clean up empty or invalid values
+            for (const key in payload) {
+                if (payload[key] === "" || (typeof payload[key] === 'number' && isNaN(payload[key]))) {
+                    delete payload[key];
+                }
+            }
+
+            console.log("Submitting payload:", payload);
+
+            try {
+                status.textContent = "Step 1/2: Updating profile information...";
+                status.style.display = 'block';
+                status.style.color = 'var(--accent)';
+                
+                await trpc('onboarding.update', payload, 'mutation');
+                
+                status.textContent = "Step 2/2: Profile updated! Generating your training plan...";
+                status.style.color = 'var(--secondary)';
+
+                // Check if plan was generated (server triggers it on update)
+                // We'll poll or just wait a bit and check
+                let plan = null;
+                for (let i = 0; i < 5; i++) {
+                    plan = await trpc('plan.getActive');
+                    if (plan) break;
+                    await new Promise(r => setTimeout(r, 1000)); // Wait 1s and retry
+                }
+
+                if (plan) {
+                    status.innerHTML = "✅ <strong>Success!</strong> Your personalized training plan has been generated.";
+                    status.style.color = '#03dac6';
+                    document.getElementById('viewPlanBtn').style.display = 'inline-block';
+                } else {
+                    status.textContent = "Profile updated, but plan generation couldn't be confirmed. Please check the Progression page.";
+                    status.style.color = 'var(--text-dim)';
+                }
+            } catch (err) {
+                status.textContent = "Error: " + (err.message || "Failed to update profile");
+                status.style.display = 'block';
+                status.style.color = '#cf6679';
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>

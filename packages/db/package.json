@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev --config=prisma.config.ts",
     "db:reset": "prisma migrate reset --force --config=prisma.config.ts",
     "db:studio": "prisma studio --config=prisma.config.ts",
+    "seed": "dlx tsx prisma/seed.ts",
     "test:plans": "tsx prisma/test_plans.ts"
   },
   "dependencies": {
@@ -24,13 +25,13 @@
     "@prisma/client": "^7.5.0",
     "dotenv": "catalog:",
     "pg": "^8.16.3",
+    "prisma": "^7.4.1",
     "zod": "catalog:"
   },
 
   "devDependencies": {
     "@kora/config": "workspace:*",
     "@types/pg": "^8.18.0",
-    "prisma": "^7.4.1",
     "typescript": "catalog:"
   }
 }

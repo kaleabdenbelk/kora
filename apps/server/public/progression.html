@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kora | Progression Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --accent: #bb86fc;
+            --secondary: #03dac6;
+            --text: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --error: #cf6679;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .session-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent);
+        }
+
+        .exercise-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.85rem; }
+        
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .result-box {
+            background: rgba(3, 218, 198, 0.05);
+            border: 1px solid var(--secondary);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .result-title { color: var(--secondary); font-weight: 800; margin-bottom: 1rem; }
+        
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .chip {
+            padding: 0.25rem 0.5rem;
+            background: rgba(187, 134, 252, 0.1);
+            color: var(--accent);
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Progression Engine</h1>
+
+        <div class="card" id="planSection">
+            <div class="section-title">
+                Active Workout Plan
+                <button onclick="loadPlan()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">Refresh</button>
+            </div>
+            <div id="planContent">Loading active plan...</div>
+        </div>
+
+        <div class="card" id="calcSection" style="display: none;">
+            <div class="section-title">
+                Double Progression Calculator
+                <span id="selectedExerciseName" class="chip"></span>
+            </div>
+            
+            <form id="calcForm" class="calculator-grid">
+                <input type="hidden" id="exerciseId">
+                <div class="form-group">
+                    <label>Planned Sets</label>
+                    <input type="number" id="plannedSets" value="3">
+                </div>
+                <div class="form-group">
+                    <label>Planned Rep Range</label>
+                    <input type="text" id="plannedReps" value="8-12">
+                </div>
+                <div class="form-group">
+                    <label>Last Session Weight (kg)</label>
+                    <input type="number" id="lastWeight" value="20" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Last Session Reps (List, e.g. 12,12,12)</label>
+                    <input type="text" id="lastReps" value="12,12,12">
+                </div>
+                <div class="form-group">
+                    <label>Last Session Fatigue (1-10)</label>
+                    <input type="number" id="lastFatigue" value="5" min="1" max="10">
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button type="submit" id="calcBtn">Calculate Next Targets</button>
+                </div>
+            </form>
+
+            <div id="resultBox" class="result-box">
+                <div class="result-title">New Targets Calculated</div>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="index.html" style="color: var(--text-dim); text-decoration: none; font-size: 0.85rem;">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Simple tRPC Fetcher (Non-Batched)
+        async function trpc(path, input = {}, type = 'query') {
+            try {
+                const url = type === 'query' 
+                    ? `/trpc/${path}?input=${encodeURIComponent(JSON.stringify(input))}`
+                    : `/trpc/${path}`;
+                
+                const options = {
+                    method: type === 'query' ? 'GET' : 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (type === 'mutation') options.body = JSON.stringify(input);
+
+                const res = await fetch(url, options);
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw data.error || { message: `HTTP Error ${res.status}` };
+                }
+
+                return data.result.data;
+            } catch (err) {
+                console.error(`[tRPC Error] ${path}:`, err);
+                throw err;
+            }
+        }
+
+        async function loadPlan() {
+            const content = document.getElementById('planContent');
+            try {
+                const plan = await trpc('plan.getActive');
+                if (!plan) {
+                    content.innerHTML = '<div style="color: var(--error)">No active plan found. Please complete <a href="onboarding.html" style="color: inherit">onboarding</a>.</div>';
+                    return;
+                }
+
+                let html = `<div class="session-list">`;
+                // Show first week sessions
+                plan.sessions.filter(s => s.week === 1).forEach(session => {
+                    const planned = session.planned;
+                    html += `
+                        <div class="session-item" onclick="selectSession(${JSON.stringify(session).replace(/"/g, '&quot;')})">
+                            <div style="font-weight: 700; margin-bottom: 0.5rem;">Day ${session.dayNumber}: ${planned.name}</div>
+                            ${planned.exercises.map(e => `
+                                <div class="exercise-item">
+                                    <span style="font-size: 0.9rem">${e.name}</span>
+                                    <span style="color: var(--text-dim); font-size: 0.8rem">${e.sets}x${e.reps}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                content.innerHTML = html;
+            } catch (err) {
+                content.textContent = "Error loading plan: " + err.message;
+            }
+        }
+
+        function selectSession(session) {
+            // Simplify for testing: just pick the first exercise to calculate progression
+            const ex = session.planned.exercises[0];
+            document.getElementById('calcSection').style.display = 'block';
+            document.getElementById('selectedExerciseName').textContent = ex.name;
+            document.getElementById('exerciseId').value = ex.exerciseId;
+            document.getElementById('plannedSets').value = parseInt(ex.sets);
+            document.getElementById('plannedReps').value = ex.reps;
+            
+            // Scroll to calculator
+            document.getElementById('calcSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('calcForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('calcBtn');
+            const resultBox = document.getElementById('resultBox');
+            const resultContent = document.getElementById('resultContent');
+
+            btn.disabled = true;
+            resultBox.style.display = 'none';
+
+            // We need to provide "mock history" to the raw engine
+            // However, our `progression.calculate` tRPC mutation pulls history from DB.
+            // For this testbed, let's MAKE SURE the user knows this calculates based on the PREVIOUS DB state,
+            // OR we can make a "dry run" version if needed.
+            // For now, we'll use the tRPC mutation we created which reads from DB.
+            
+            // NOTE: Since we haven't actually LOGGED a session yet in this UI,
+            // the engine will return "Initial session" targets (0 weight).
+            // To test actual progression, I'd need a "log session" feature.
+            
+            const payload = {
+                exerciseId: document.getElementById('exerciseId').value,
+                plannedSets: parseInt(document.getElementById('plannedSets').value),
+                plannedReps: document.getElementById('plannedReps').value,
+                lastFatigue: parseInt(document.getElementById('lastFatigue').value)
+            };
+
+            try {
+                const result = await trpc('progression.calculate', payload, 'mutation');
+                
+                resultContent.innerHTML = `
+                    <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">${result.weight}kg × ${result.reps}</div>
+                    <div style="color: var(--text-dim); margin-bottom: 1rem;">Target RPE: ${result.rpe}</div>
+                    <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-style: italic;">
+                        "${result.note}"
+                    </div>
+                `;
+                resultBox.style.display = 'block';
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        loadPlan();
+    </script>
+</body>
+</html>
