@@ -9,7 +9,12 @@
       { "week": 1, "intensityPercent": 60, "volumeModifier": 1.0 },
       { "week": 2, "intensityPercent": 65, "volumeModifier": 1.0 },
       { "week": 3, "intensityPercent": 70, "volumeModifier": 0.95 },
-      { "week": 4, "deload": true, "intensityPercent": 55, "volumeModifier": 0.6 }
+      {
+        "week": 4,
+        "deload": true,
+        "intensityPercent": 55,
+        "volumeModifier": 0.6
+      }
     ]
   },
   {
@@ -22,7 +27,12 @@
       { "week": 1, "intensityPercent": 65, "volumeModifier": 1.0 },
       { "week": 2, "intensityPercent": 70, "volumeModifier": 1.05 },
       { "week": 3, "intensityPercent": 75, "volumeModifier": 1.1 },
-      { "week": 4, "deload": true, "intensityPercent": 60, "volumeModifier": 0.7 }
+      {
+        "week": 4,
+        "deload": true,
+        "intensityPercent": 60,
+        "volumeModifier": 0.7
+      }
     ]
   },
   {
@@ -37,7 +47,12 @@
       { "week": 3, "intensityPercent": 75, "volumeModifier": 1.05 },
       { "week": 4, "intensityPercent": 80, "volumeModifier": 1.1 },
       { "week": 5, "intensityPercent": 85, "volumeModifier": 1.15 },
-      { "week": 6, "deload": true, "intensityPercent": 60, "volumeModifier": 0.6 }
+      {
+        "week": 6,
+        "deload": true,
+        "intensityPercent": 60,
+        "volumeModifier": 0.6
+      }
     ]
   },
   {
@@ -52,7 +67,12 @@
       { "week": 3, "intensityPercent": 75, "volumeModifier": 0.95 },
       { "week": 4, "intensityPercent": 75, "volumeModifier": 0.95 },
       { "week": 5, "intensityPercent": 78, "volumeModifier": 0.9 },
-      { "week": 6, "deload": true, "intensityPercent": 60, "volumeModifier": 0.7 }
+      {
+        "week": 6,
+        "deload": true,
+        "intensityPercent": 60,
+        "volumeModifier": 0.7
+      }
     ]
   },
   {
@@ -70,7 +90,12 @@
       { "week": 6, "intensityPercent": 90, "volumeModifier": 0.9 },
       { "week": 7, "intensityPercent": 92, "volumeModifier": 0.8 },
       { "week": 8, "intensityPercent": 95, "volumeModifier": 0.7 },
-      { "week": 9, "deload": true, "intensityPercent": 60, "volumeModifier": 0.5 }
+      {
+        "week": 9,
+        "deload": true,
+        "intensityPercent": 60,
+        "volumeModifier": 0.5
+      }
     ]
   }
 ]

@@ -23,11 +23,7 @@
           "CORE",
           "CALVES"
         ],
-        "primaryMuscles": [
-          "QUADS",
-          "CHEST",
-          "BACK"
-        ],
+        "primaryMuscles": ["QUADS", "CHEST", "BACK"],
         "secondaryMuscles": [
           "HAMSTRINGS",
           "GLUTES",
@@ -86,22 +82,9 @@
       {
         "day": 1,
         "category": "UPPER",
-        "focus": [
-          "CHEST",
-          "BACK",
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "BACK"],
+        "secondaryMuscles": ["SHOULDERS", "BICEPS", "TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -128,20 +111,9 @@
       {
         "day": 2,
         "category": "LOWER",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "HAMSTRINGS"
-        ],
-        "secondaryMuscles": [
-          "GLUTES",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "HAMSTRINGS"],
+        "secondaryMuscles": ["GLUTES", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -171,18 +143,9 @@
       {
         "day": 1,
         "category": "PUSH",
-        "focus": [
-          "CHEST",
-          "SHOULDERS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "SHOULDERS"
-        ],
-        "secondaryMuscles": [
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "SHOULDERS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "SHOULDERS"],
+        "secondaryMuscles": ["TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -201,16 +164,9 @@
       {
         "day": 2,
         "category": "PULL",
-        "focus": [
-          "BACK",
-          "BICEPS"
-        ],
-        "primaryMuscles": [
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "BICEPS"
-        ],
+        "focus": ["BACK", "BICEPS"],
+        "primaryMuscles": ["BACK"],
+        "secondaryMuscles": ["BICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -225,20 +181,9 @@
       {
         "day": 3,
         "category": "LEGS",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "HAMSTRINGS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "GLUTES"],
+        "secondaryMuscles": ["HAMSTRINGS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -268,18 +213,9 @@
       {
         "day": 1,
         "category": "PUSH",
-        "focus": [
-          "CHEST",
-          "SHOULDERS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "SHOULDERS"
-        ],
-        "secondaryMuscles": [
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "SHOULDERS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "SHOULDERS"],
+        "secondaryMuscles": ["TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -298,16 +234,9 @@
       {
         "day": 2,
         "category": "PULL",
-        "focus": [
-          "BACK",
-          "BICEPS"
-        ],
-        "primaryMuscles": [
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "BICEPS"
-        ],
+        "focus": ["BACK", "BICEPS"],
+        "primaryMuscles": ["BACK"],
+        "secondaryMuscles": ["BICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -322,20 +251,9 @@
       {
         "day": 3,
         "category": "LEGS",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "HAMSTRINGS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "GLUTES"],
+        "secondaryMuscles": ["HAMSTRINGS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -366,11 +284,7 @@
           "CORE",
           "CALVES"
         ],
-        "primaryMuscles": [
-          "CHEST",
-          "BACK",
-          "QUADS"
-        ],
+        "primaryMuscles": ["CHEST", "BACK", "QUADS"],
         "secondaryMuscles": [
           "HAMSTRINGS",
           "GLUTES",
@@ -429,18 +343,9 @@
       {
         "day": 1,
         "category": "PUSH",
-        "focus": [
-          "CHEST",
-          "SHOULDERS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "SHOULDERS"
-        ],
-        "secondaryMuscles": [
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "SHOULDERS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "SHOULDERS"],
+        "secondaryMuscles": ["TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -459,16 +364,9 @@
       {
         "day": 2,
         "category": "PULL",
-        "focus": [
-          "BACK",
-          "BICEPS"
-        ],
-        "primaryMuscles": [
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "BICEPS"
-        ],
+        "focus": ["BACK", "BICEPS"],
+        "primaryMuscles": ["BACK"],
+        "secondaryMuscles": ["BICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -483,20 +381,9 @@
       {
         "day": 3,
         "category": "LEGS",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "HAMSTRINGS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "GLUTES"],
+        "secondaryMuscles": ["HAMSTRINGS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -515,22 +402,9 @@
       {
         "day": 4,
         "category": "UPPER",
-        "focus": [
-          "CHEST",
-          "BACK",
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "BACK"],
+        "secondaryMuscles": ["SHOULDERS", "BICEPS", "TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -557,20 +431,9 @@
       {
         "day": 5,
         "category": "LOWER",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "HAMSTRINGS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "QUADS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["HAMSTRINGS", "GLUTES"],
+        "secondaryMuscles": ["QUADS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "HINGE",
@@ -600,18 +463,9 @@
       {
         "day": 1,
         "category": "PUSH",
-        "focus": [
-          "CHEST",
-          "SHOULDERS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "SHOULDERS"
-        ],
-        "secondaryMuscles": [
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "SHOULDERS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "SHOULDERS"],
+        "secondaryMuscles": ["TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -630,16 +484,9 @@
       {
         "day": 2,
         "category": "PULL",
-        "focus": [
-          "BACK",
-          "BICEPS"
-        ],
-        "primaryMuscles": [
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "BICEPS"
-        ],
+        "focus": ["BACK", "BICEPS"],
+        "primaryMuscles": ["BACK"],
+        "secondaryMuscles": ["BICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -654,20 +501,9 @@
       {
         "day": 3,
         "category": "LEGS",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "HAMSTRINGS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "GLUTES"],
+        "secondaryMuscles": ["HAMSTRINGS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -686,22 +522,9 @@
       {
         "day": 4,
         "category": "UPPER",
-        "focus": [
-          "CHEST",
-          "BACK",
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "BACK"],
+        "secondaryMuscles": ["SHOULDERS", "BICEPS", "TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -728,20 +551,9 @@
       {
         "day": 5,
         "category": "LOWER",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "HAMSTRINGS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "QUADS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["HAMSTRINGS", "GLUTES"],
+        "secondaryMuscles": ["QUADS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "HINGE",
@@ -772,10 +584,7 @@
           "CORE",
           "CALVES"
         ],
-        "primaryMuscles": [
-          "QUADS",
-          "CHEST"
-        ],
+        "primaryMuscles": ["QUADS", "CHEST"],
         "secondaryMuscles": [
           "BACK",
           "HAMSTRINGS",
@@ -834,18 +643,9 @@
       {
         "day": 1,
         "category": "PUSH",
-        "focus": [
-          "CHEST",
-          "SHOULDERS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "SHOULDERS"
-        ],
-        "secondaryMuscles": [
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "SHOULDERS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "SHOULDERS"],
+        "secondaryMuscles": ["TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PUSH",
@@ -864,16 +664,9 @@
       {
         "day": 2,
         "category": "PULL",
-        "focus": [
-          "BACK",
-          "BICEPS"
-        ],
-        "primaryMuscles": [
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "BICEPS"
-        ],
+        "focus": ["BACK", "BICEPS"],
+        "primaryMuscles": ["BACK"],
+        "secondaryMuscles": ["BICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -888,20 +681,9 @@
       {
         "day": 3,
         "category": "LEGS",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "QUADS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "HAMSTRINGS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["QUADS", "GLUTES"],
+        "secondaryMuscles": ["HAMSTRINGS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -920,22 +702,9 @@
       {
         "day": 4,
         "category": "UPPER",
-        "focus": [
-          "CHEST",
-          "BACK",
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
-        "primaryMuscles": [
-          "CHEST",
-          "BACK"
-        ],
-        "secondaryMuscles": [
-          "SHOULDERS",
-          "BICEPS",
-          "TRICEPS"
-        ],
+        "focus": ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
+        "primaryMuscles": ["CHEST", "BACK"],
+        "secondaryMuscles": ["SHOULDERS", "BICEPS", "TRICEPS"],
         "movementPatterns": [
           {
             "pattern": "HORIZONTAL_PULL",
@@ -962,20 +731,9 @@
       {
         "day": 5,
         "category": "LOWER",
-        "focus": [
-          "QUADS",
-          "HAMSTRINGS",
-          "GLUTES",
-          "CALVES"
-        ],
-        "primaryMuscles": [
-          "HAMSTRINGS",
-          "GLUTES"
-        ],
-        "secondaryMuscles": [
-          "QUADS",
-          "CALVES"
-        ],
+        "focus": ["QUADS", "HAMSTRINGS", "GLUTES", "CALVES"],
+        "primaryMuscles": ["HAMSTRINGS", "GLUTES"],
+        "secondaryMuscles": ["QUADS", "CALVES"],
         "movementPatterns": [
           {
             "pattern": "HINGE",
@@ -1006,16 +764,8 @@
           "CORE",
           "CALVES"
         ],
-        "primaryMuscles": [
-          "QUADS",
-          "CHEST"
-        ],
-        "secondaryMuscles": [
-          "BACK",
-          "HAMSTRINGS",
-          "SHOULDERS",
-          "CORE"
-        ],
+        "primaryMuscles": ["QUADS", "CHEST"],
+        "secondaryMuscles": ["BACK", "HAMSTRINGS", "SHOULDERS", "CORE"],
         "movementPatterns": [
           {
             "pattern": "SQUAT",
@@ -1066,10 +816,7 @@
           "CORE",
           "CALVES"
         ],
-        "primaryMuscles": [
-          "BACK",
-          "GLUTES"
-        ],
+        "primaryMuscles": ["BACK", "GLUTES"],
         "secondaryMuscles": [
           "CHEST",
           "QUADS",

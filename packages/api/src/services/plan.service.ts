@@ -10,7 +10,12 @@ export class PlanService {
       where: { userId },
     });
 
-    if (!profile || !profile.goal || !profile.trainingLevel || !profile.trainingDaysPerWeek) {
+    if (
+      !profile ||
+      !profile.goal ||
+      !profile.trainingLevel ||
+      !profile.trainingDaysPerWeek
+    ) {
       throw new Error("Onboarding incomplete");
     }
 

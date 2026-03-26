@@ -1,6 +1,6 @@
+import { env } from "@kora/env/server";
 import { TRPCError } from "@trpc/server";
 import Redis from "ioredis";
-import { env } from "@kora/env/server";
 
 // Initialize Redis client using the existing environment variables
 const redis = new Redis({
@@ -17,7 +17,11 @@ const redis = new Redis({
  * @param maxRequests The maximum number of requests allowed per user within the window
  * @param prefix An optional prefix for the Redis key to separate different limits
  */
-export function createRateLimiter(windowMs: number, maxRequests: number, prefix: string) {
+export function createRateLimiter(
+  windowMs: number,
+  maxRequests: number,
+  prefix: string,
+) {
   return async ({ ctx, next, path }: any) => {
     // If there is no user session, skip rate limiting or apply IP based fallback
     // Since this is meant for protected procedures, user ID should be present.
@@ -37,7 +41,7 @@ export function createRateLimiter(windowMs: number, maxRequests: number, prefix:
       if (currentCount > maxRequests) {
         throw new TRPCError({
           code: "TOO_MANY_REQUESTS",
-          message: `Rate limit exceeded. Try again later.`,
+          message: "Rate limit exceeded. Try again later.",
         });
       }
 

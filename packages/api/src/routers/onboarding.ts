@@ -1,6 +1,12 @@
+import prisma, {
+  DayOfWeek,
+  ExerciseEnvironment,
+  ExperienceLevel,
+  Gender,
+  TrainingGoal,
+} from "@kora/db";
 import { z } from "zod";
 import { protectedProcedure, rateLimitedProcedure, router } from "../index";
-import prisma, { Gender, ExperienceLevel, ExerciseEnvironment, DayOfWeek, TrainingGoal } from "@kora/db";
 import { PlanService } from "../services/plan.service";
 
 const planService = new PlanService();
@@ -44,11 +50,19 @@ export const onboardingRouter = router({
       });
 
       // Trigger plan generation if profile is complete
-      if (onboarding.goal && onboarding.trainingLevel && onboarding.trainingDaysPerWeek && onboarding.gender) {
+      if (
+        onboarding.goal &&
+        onboarding.trainingLevel &&
+        onboarding.trainingDaysPerWeek &&
+        onboarding.gender
+      ) {
         try {
           await planService.generatePlan(ctx.session.user.id);
         } catch (error) {
-          console.error("Failed to generate plan on onboarding completion:", error);
+          console.error(
+            "Failed to generate plan on onboarding completion:",
+            error,
+          );
           // We don't throw here to avoid failing the onboarding update itself
         }
       }

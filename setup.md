@@ -59,3 +59,16 @@ This command uses Turbo to start all applications (`web`, `server`, etc.) in dev
 "sudo docker compose up -d db minio"
 "pnpm dlx tsx packages/db/prisma/seed.ts"
 "pnpm run dev"
+
+
+redis fails
+sudo docker start kora-redis
+
+postgress fails and the system is running postgress
+ sudo lsof -i :5432
+
+sudo systemctl stop postgresql
+
+if its running docker 
+
+sudo docker stop <container_id> the one using 5432

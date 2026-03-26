@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import prisma, { Gender, ExperienceLevel, TrainingGoal } from "@kora/db";
+import prisma, { ExperienceLevel, Gender, TrainingGoal } from "@kora/db";
+import { beforeAll, describe, expect, it } from "vitest";
 import { PlanService } from "./plan.service";
 
-describe('PlanService', () => {
+describe("PlanService", () => {
   const planService = new PlanService();
   const testUserId = "test-user-plan-gen";
 
@@ -23,7 +23,7 @@ describe('PlanService', () => {
     await prisma.onboarding.deleteMany({ where: { userId: testUserId } });
   });
 
-  it('should generate a plan when onboarding is complete (including gender)', async () => {
+  it("should generate a plan when onboarding is complete (including gender)", async () => {
     // 3. Create onboarding data with required fields
     await prisma.onboarding.create({
       data: {

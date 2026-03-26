@@ -1,14 +1,14 @@
+import { env } from "@kora/env/server";
+import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
-import { env } from "@kora/env/server";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { HealthModule } from "./health/health.module";
 import { S3TestModule } from "./s3-test/s3-test.module";
 import { TrpcModule } from "./trpc/trpc.module";
-import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [

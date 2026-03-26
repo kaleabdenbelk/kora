@@ -30,6 +30,7 @@ model UserSession {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   completedStatus  Boolean           @default(false)
+  fatigue          Int?              // 1-10 overall session fatigue
   exercises        UserExerciseLog[]
 
   @@index([userId])
@@ -50,6 +51,7 @@ model UserExerciseLog {
   createdAt        DateTime    @default(now())
   weightsPerSet    Json?
   repsPerSet       Json?
+  rpePerSet        Json?       // Intensity per set
   notes            String?
 
   @@index([sessionId])

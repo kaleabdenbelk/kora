@@ -1,10 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
-import type { OnModuleInit } from "@nestjs/common";
-import { env } from "@kora/env/server";
+import { ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetSendQuotaCommand, SESClient } from "@aws-sdk/client-ses";
 import prisma from "@kora/db";
+import { env } from "@kora/env/server";
+import type { OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Redis } from "ioredis";
-import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
-import { SESClient, GetSendQuotaCommand } from "@aws-sdk/client-ses";
 
 @Injectable()
 export class HealthService implements OnModuleInit {
@@ -12,11 +12,11 @@ export class HealthService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log("🚀 Starting System Health Checks...");
-    
+
     await this.checkDatabase();
     await this.checkRedis();
     await this.checkAWS();
-    
+
     this.logger.log("✨ All Health Checks Completed!");
   }
 
@@ -40,10 +40,15 @@ export class HealthService implements OnModuleInit {
     try {
       await redis.connect();
       await redis.ping();
-      this.logger.log(`✅ Redis: Connected (${env.REDIS_HOST}:${env.REDIS_PORT})`);
+      this.logger.log(
+        `✅ Redis: Connected (${env.REDIS_HOST}:${env.REDIS_PORT})`,
+      );
       await redis.quit();
     } catch (error: any) {
-      this.logger.error(`❌ Redis: Connection Failed (${env.REDIS_HOST}:${env.REDIS_PORT})`, error.message);
+      this.logger.error(
+        `❌ Redis: Connection Failed (${env.REDIS_HOST}:${env.REDIS_PORT})`,
+        error.message,
+      );
     }
   }
 
@@ -80,7 +85,9 @@ export class HealthService implements OnModuleInit {
       this.logger.log("✅ AWS SES: Ready");
     } catch (error) {
       // In local dev without real SES keys, this might fail, which is often expected
-      this.logger.warn("⚠️ AWS SES: Skipping or Not Configured (Expected in local dev)");
+      this.logger.warn(
+        "⚠️ AWS SES: Skipping or Not Configured (Expected in local dev)",
+      );
     }
   }
 }

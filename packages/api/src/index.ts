@@ -26,5 +26,8 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 // A protected procedure with a customizable rate limit
-export const rateLimitedProcedure = (windowMs: number, maxRequests: number, prefix = "std") => 
-  protectedProcedure.use(createRateLimiter(windowMs, maxRequests, prefix));
+export const rateLimitedProcedure = (
+  windowMs: number,
+  maxRequests: number,
+  prefix = "std",
+) => protectedProcedure.use(createRateLimiter(windowMs, maxRequests, prefix));

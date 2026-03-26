@@ -1,6 +1,6 @@
+import { publicProcedure, router } from "../index";
 import { onboardingRouter } from "./onboarding";
 import { planRouter } from "./plan";
-import { publicProcedure, router } from "../index";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {

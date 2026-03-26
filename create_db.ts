@@ -1,16 +1,20 @@
-import pkg from 'pg';
+import pkg from "pg";
+
 const { Client } = pkg;
 
 async function main() {
-  const connectionString = "postgresql://postgres:postgres@localhost:5432/postgres";
+  const connectionString =
+    "postgresql://postgres:postgres@localhost:5432/postgres";
   const client = new Client({ connectionString });
-  
+
   try {
     await client.connect();
     console.log("Connected to default 'postgres' database.");
-    
+
     // Check if kora_dev exists
-    const res = await client.query("SELECT 1 FROM pg_database WHERE datname = 'kora_dev'");
+    const res = await client.query(
+      "SELECT 1 FROM pg_database WHERE datname = 'kora_dev'",
+    );
     if (res.rowCount === 0) {
       console.log("Creating database 'kora_dev'...");
       await client.query("CREATE DATABASE kora_dev");
