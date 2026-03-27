@@ -45,6 +45,7 @@
             text-align: center;
             background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -141,8 +142,8 @@
         <h1 id="title">Welcome to Kora</h1>
         
         <div class="tabs">
-            <div class="tab active" onclick="setMode('signin')">Login</div>
-            <div class="tab" onclick="setMode('signup')">Sign Up</div>
+            <div class="tab active" onclick="setMode(event, 'signin')">Login</div>
+            <div class="tab" onclick="setMode(event, 'signup')">Sign Up</div>
         </div>
 
         <form id="authForm">
@@ -170,9 +171,10 @@
     <script>
         let mode = 'signin';
 
-        function setMode(newMode) {
+        // biome-ignore lint/correctness/noUnusedVariables: used in HTML onclick
+        function setMode(event, newMode) {
             mode = newMode;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); });
             event.target.classList.add('active');
             
             document.getElementById('title').textContent = mode === 'signin' ? 'Welcome Back' : 'Create Account';

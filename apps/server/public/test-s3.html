@@ -215,7 +215,7 @@
         const d = await r.json();
         log('log-health', JSON.stringify(d, null, 2), d.status === 'ok' ? 'ok' : 'err');
         $('health-dot').className = `status-dot ${d.status === 'ok' ? 'ok' : 'err'}`;
-        $('health-text').textContent = d.status === 'ok' ? 'Bucket reachable ✓' : 'Error: ' + d.message;
+        $('health-text').textContent = d.status === 'ok' ? 'Bucket reachable ✓' : `Error: ${d.message}`;
         $('health-text').style.color = d.status === 'ok' ? 'var(--success)' : 'var(--error)';
       } catch(e) {
         log('log-health', e.message, 'err');
@@ -240,7 +240,7 @@
           const li = document.createElement('li');
           li.innerHTML = `
             <span title="${f.key}">${f.key}</span>
-            <span style="color:var(--muted);white-space:nowrap">${f.size ? (f.size/1024).toFixed(1)+'KB' : ''}</span>
+            <span style="color:var(--muted);white-space:nowrap">${f.size ? `${(f.size/1024).toFixed(1)}KB` : ''}</span>
             <button class="dl-btn" onclick="downloadFile('${f.key}')">↓</button>
             <button class="del-btn" onclick="deleteFile('${f.key}')">✕</button>`;
           ul.appendChild(li);
@@ -273,7 +273,7 @@
     };
 
     // Download
-    async function downloadFile(key) {
+    async function _downloadFile(key) {
       try {
         const r = await fetch(`${API}/download/${encodeURIComponent(key)}`);
         const d = await r.json();
@@ -282,7 +282,7 @@
     }
 
     // Delete
-    async function deleteFile(key) {
+    async function _deleteFile(key) {
       try {
         await fetch(`${API}/${encodeURIComponent(key)}`, { method:'DELETE' });
         listFiles();

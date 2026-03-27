@@ -25,7 +25,10 @@ export class HealthService implements OnModuleInit {
       await prisma.$queryRaw`SELECT 1`;
       this.logger.log("✅ Postgres: Connected (kora_dev)");
     } catch (error: unknown) {
-      this.logger.error("❌ Postgres: Connection Failed", error instanceof Error ? error.message : String(error));
+      this.logger.error(
+        "❌ Postgres: Connection Failed",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -68,7 +71,10 @@ export class HealthService implements OnModuleInit {
       await s3.send(new ListBucketsCommand({}));
       this.logger.log(`✅ AWS S3: Connected (${env.AWS_S3_BUCKET_NAME})`);
     } catch (error: unknown) {
-      this.logger.error("❌ AWS S3: Connection Failed", error instanceof Error ? error.message : String(error));
+      this.logger.error(
+        "❌ AWS S3: Connection Failed",
+        error instanceof Error ? error.message : String(error),
+      );
     }
 
     // 2. SES

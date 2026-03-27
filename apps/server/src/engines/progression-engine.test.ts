@@ -1,6 +1,6 @@
+import { ProgressionEngine } from "@kora/api/engines/progression-engine";
 import type { PrismaClient } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ProgressionEngine } from "./progression-engine";
 
 // Mock Prisma
 const prismaMock = {

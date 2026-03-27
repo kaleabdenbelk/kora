@@ -1,9 +1,11 @@
-import { ProgressionEngine } from "./progression-engine";
+import { ProgressionEngine } from "@kora/api/engines/progression-engine";
 
 // Standalone mock for verification that doesn't need @prisma/client
 const prismaMock = {
   userExerciseLog: {
-    findFirst: async (args: { where: { exerciseId?: string; [key: string]: unknown } }) => {
+    findFirst: async (args: {
+      where: { exerciseId?: string; [key: string]: unknown };
+    }) => {
       console.log("\n[Mock] findFirst called for session/exercise search");
 
       // Default mock behavior: Return a successful history
@@ -24,7 +26,7 @@ const prismaMock = {
       };
     },
   },
-// biome-ignore lint/suspicious/noExplicitAny: standalone verification script mock
+  // biome-ignore lint/suspicious/noExplicitAny: standalone verification script mock
 } as any;
 
 async function run() {
@@ -64,7 +66,10 @@ async function run() {
         plannedReps: "invalid", // Invalid
       });
     } catch (e: unknown) {
-      console.log("Validation caught error as expected:", e instanceof Error ? e.message : e);
+      console.log(
+        "Validation caught error as expected:",
+        e instanceof Error ? e.message : e,
+      );
     }
   } catch (error) {
     console.error("Test failed unexpectedly:", error);

@@ -60,7 +60,7 @@ export class PlanService {
     });
 
     if (!selection) {
-      console.error(`[PlanService] No matching program found for:`, {
+      console.error("[PlanService] No matching program found for:", {
         goal: profile.goal,
         level: profile.trainingLevel,
         days: profile.trainingDaysPerWeek,
@@ -69,12 +69,14 @@ export class PlanService {
       throw new Error("No matching program template found for your profile.");
     }
 
-    console.log(`[PlanService] Program found: ${selection.program.name}. Creating UserPlan...`);
+    console.log(
+      `[PlanService] Program found: ${selection.program.name}. Creating UserPlan...`,
+    );
     const { program } = selection;
 
     // 3. Create the UserPlan and its sessions in a transaction
     return await prisma.$transaction(async (tx) => {
-      console.log(`[PlanService] Starting transaction...`);
+      console.log("[PlanService] Starting transaction...");
       const startDate = new Date();
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + program.durationWeeks * 7);

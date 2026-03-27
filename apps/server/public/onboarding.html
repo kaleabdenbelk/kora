@@ -241,16 +241,16 @@
             const payload = {
                 preferredName: document.getElementById('preferredName').value,
                 gender: document.getElementById('gender').value,
-                age: parseInt(document.getElementById('age').value),
-                weight: parseFloat(document.getElementById('weight').value),
-                trainingDaysPerWeek: parseInt(document.getElementById('trainingDaysPerWeek').value),
+                age: Number.parseInt(document.getElementById('age').value, 10),
+                weight: Number.parseFloat(document.getElementById('weight').value),
+                trainingDaysPerWeek: Number.parseInt(document.getElementById('trainingDaysPerWeek').value, 10),
                 goal: document.getElementById('goal').value,
                 trainingLevel: document.getElementById('trainingLevel').value
             };
             
             // Clean up empty or invalid values
             for (const key in payload) {
-                if (payload[key] === "" || (typeof payload[key] === 'number' && isNaN(payload[key]))) {
+                if (payload[key] === "" || (typeof payload[key] === 'number' && Number.isNaN(payload[key]))) {
                     delete payload[key];
                 }
             }
@@ -285,7 +285,7 @@
                     status.style.color = 'var(--text-dim)';
                 }
             } catch (err) {
-                status.textContent = "Error: " + (err.message || "Failed to update profile");
+                status.textContent = `Error: ${err.message || "Failed to update profile"}`;
                 status.style.display = 'block';
                 status.style.color = '#cf6679';
             } finally {

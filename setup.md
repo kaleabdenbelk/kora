@@ -72,3 +72,5 @@ sudo systemctl stop postgresql
 if its running docker 
 
 sudo docker stop <container_id> the one using 5432
+
+sudo docker start kora-postgres

@@ -5,7 +5,7 @@ const planService = new PlanService();
 
 export const planRouter = router({
   // Strict limit: 1 request every 60 seconds per user
-  generate: rateLimitedProcedure(60000, 1, "plan:gen").mutation(
+  generate: rateLimitedProcedure(60000, 1, "plan:gen", false).mutation(
     async ({ ctx }) => {
       return await planService.generatePlan(ctx.session.user.id);
     },

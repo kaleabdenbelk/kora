@@ -47,13 +47,21 @@ async function main() {
 
     for (const ex of exercisesData) {
       if (ex.anatomy?.primary)
-        ex.anatomy.primary.forEach((m: string) => muscles.add(m));
+        ex.anatomy.primary.forEach((m: string) => {
+          muscles.add(m);
+        });
       if (ex.anatomy?.secondary)
-        ex.anatomy.secondary.forEach((m: string) => muscles.add(m));
+        ex.anatomy.secondary.forEach((m: string) => {
+          muscles.add(m);
+        });
       if (ex.anatomy?.stabilizers)
-        ex.anatomy.stabilizers.forEach((m: string) => muscles.add(m));
+        ex.anatomy.stabilizers.forEach((m: string) => {
+          muscles.add(m);
+        });
       if (ex.requirements?.equipment)
-        ex.requirements.equipment.forEach((e: string) => equipment.add(e));
+        ex.requirements.equipment.forEach((e: string) => {
+          equipment.add(e);
+        });
       if (ex.classification?.category)
         categories.add(ex.classification.category);
       if (ex.classification?.movement_pattern)

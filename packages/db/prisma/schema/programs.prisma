@@ -11,6 +11,7 @@ model Program {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  isDeleted     Boolean   @default(false)
 
   @@map("programs")
 }
@@ -23,6 +24,9 @@ model Phase {
   order         Int
   durationWeeks Int
   workouts      WorkoutTemplate[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  isDeleted     Boolean           @default(false)
 
   @@map("phases")
 }
@@ -34,6 +38,9 @@ model WorkoutTemplate {
   name      String
   dayNumber Int
   exercises ExerciseTemplate[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  isDeleted Boolean            @default(false)
 
   @@map("workout_templates")
 }
@@ -49,6 +56,9 @@ model ExerciseTemplate {
   reps              String
   intensity         String?         // RPE or %
   restTime          Int?            // in seconds
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  isDeleted         Boolean         @default(false)
 
   @@map("exercise_templates")
 }
@@ -61,6 +71,9 @@ model ProgramSelection {
   gender      Gender
   programId   String
   program     Program         @relation(fields: [programId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  isDeleted   Boolean         @default(false)
 
   @@unique([goal, level, daysPerWeek, gender])
   @@map("program_selections")

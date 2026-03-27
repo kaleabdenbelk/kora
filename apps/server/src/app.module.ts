@@ -8,10 +8,12 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
 import { S3TestModule } from "./s3-test/s3-test.module";
+import { SyncModule } from "./sync/sync.module";
 
 @Module({
   imports: [
     HealthModule,
+    SyncModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

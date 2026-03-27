@@ -55,7 +55,6 @@ model UserExerciseLog {
   repsPerSet       Json?
   rpePerSet        Json?       // Intensity per set
   notes            String?
-  createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   isDeleted        Boolean     @default(false)
 

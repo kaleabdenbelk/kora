@@ -37,6 +37,7 @@
             margin-bottom: 2rem;
             background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
         }
@@ -144,7 +145,7 @@
         <div class="card" id="planSection">
             <div class="section-title">
                 Active Workout Plan
-                <button onclick="loadPlan()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">Refresh</button>
+                <button type="button" onclick="loadPlan()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">Refresh</button>
             </div>
             <div id="planContent">Loading active plan...</div>
         </div>
@@ -246,20 +247,21 @@
                         </div>
                     `;
                 });
-                html += `</div>`;
+                html += "</div>";
                 content.innerHTML = html;
             } catch (err) {
-                content.textContent = "Error loading plan: " + err.message;
+                content.textContent = `Error loading plan: ${err.message}`;
             }
         }
 
+        // biome-ignore lint/correctness/noUnusedVariables: used in HTML onclick
         function selectSession(session) {
             // Simplify for testing: just pick the first exercise to calculate progression
             const ex = session.planned.exercises[0];
             document.getElementById('calcSection').style.display = 'block';
             document.getElementById('selectedExerciseName').textContent = ex.name;
             document.getElementById('exerciseId').value = ex.exerciseId;
-            document.getElementById('plannedSets').value = parseInt(ex.sets);
+            document.getElementById('plannedSets').value = Number.parseInt(ex.sets, 10);
             document.getElementById('plannedReps').value = ex.reps;
             
             // Scroll to calculator
@@ -287,9 +289,9 @@
             
             const payload = {
                 exerciseId: document.getElementById('exerciseId').value,
-                plannedSets: parseInt(document.getElementById('plannedSets').value),
+                plannedSets: Number.parseInt(document.getElementById('plannedSets').value, 10),
                 plannedReps: document.getElementById('plannedReps').value,
-                lastFatigue: parseInt(document.getElementById('lastFatigue').value)
+                lastFatigue: Number.parseInt(document.getElementById('lastFatigue').value, 10)
             };
 
             try {
@@ -304,7 +306,7 @@
                 `;
                 resultBox.style.display = 'block';
             } catch (err) {
-                alert("Error: " + err.message);
+                alert(`Error: ${err.message}`);
             } finally {
                 btn.disabled = false;
             }

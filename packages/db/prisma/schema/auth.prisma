@@ -6,6 +6,8 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  isDeleted     Boolean   @default(false)
+  role          String    @default("user")
   sessions      Session[]
   accounts      Account[]
   onboarding    Onboarding?

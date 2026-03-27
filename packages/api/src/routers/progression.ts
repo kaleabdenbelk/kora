@@ -1,8 +1,12 @@
 import prisma from "@kora/db";
 import { z } from "zod";
-import { ProgressionEngine, ProgressionOptionsSchema } from "../engines/progression-engine";
+import {
+  ProgressionEngine,
+  ProgressionOptionsSchema,
+} from "../engines/progression-engine";
 import { rateLimitedProcedure, router } from "../index";
 
+// biome-ignore lint/suspicious/noExplicitAny: prisma client typing can be tricky between packages
 const engine = new ProgressionEngine(prisma as any);
 
 export const progressionRouter = router({
@@ -18,13 +22,15 @@ export const progressionRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { exerciseId, ...options } = input;
-      console.log(`[PROGRESSION] Calculating for user: ${ctx.session.user.id}, exercise: ${exerciseId}`);
+      console.log(
+        `[PROGRESSION] Calculating for user: ${ctx.session.user.id}, exercise: ${exerciseId}`,
+      );
       const result = await engine.calculateNextTargets(
         ctx.session.user.id,
         exerciseId,
         options,
       );
-      console.log(`[PROGRESSION] Calculation result:`, result);
+      console.log("[PROGRESSION] Calculation result:", result);
       return result;
     }),
 });

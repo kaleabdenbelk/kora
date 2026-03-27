@@ -30,7 +30,9 @@ const onboardingSchema = z.object({
 
 export const onboardingRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
-    console.log(`[ONBOARDING] Fetching onboarding for user: ${ctx.session.user.id}`);
+    console.log(
+      `[ONBOARDING] Fetching onboarding for user: ${ctx.session.user.id}`,
+    );
     const onboarding = await prisma.onboarding.findUnique({
       where: { userId: ctx.session.user.id },
     });
@@ -39,12 +41,16 @@ export const onboardingRouter = router({
   }),
 
   // Protect onboarding updates (e.g., max 10 requests per minute)
-  update: rateLimitedProcedure(60000, 10, "onboarding:update")
+  update: rateLimitedProcedure(60000, 10, "onboarding:update", false)
     .input(onboardingSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(`[ONBOARDING] Update requested for user: ${ctx.session.user.id}`);
-      console.log(`[ONBOARDING] Input:`, input);
-      console.log(`[ONBOARDING] Starting upsert for user: ${ctx.session.user.id}`);
+      console.log(
+        `[ONBOARDING] Update requested for user: ${ctx.session.user.id}`,
+      );
+      console.log("[ONBOARDING] Input:", input);
+      console.log(
+        `[ONBOARDING] Starting upsert for user: ${ctx.session.user.id}`,
+      );
       const onboarding = await prisma.onboarding.upsert({
         where: { userId: ctx.session.user.id },
         update: input,
@@ -53,26 +59,38 @@ export const onboardingRouter = router({
           userId: ctx.session.user.id,
         },
       });
-      console.log(`[ONBOARDING] Upsert completed.`);
+      console.log("[ONBOARDING] Upsert completed.");
 
       // Trigger plan generation if profile is complete
-      const isComplete = !!(onboarding.goal && onboarding.trainingLevel && onboarding.trainingDaysPerWeek && onboarding.gender);
-      
+      const isComplete = !!(
+        onboarding.goal &&
+        onboarding.trainingLevel &&
+        onboarding.trainingDaysPerWeek &&
+        onboarding.gender
+      );
+
       if (isComplete) {
         try {
-          console.log(`[ONBOARDING] Triggering plan generation for ${ctx.session.user.id}...`);
+          console.log(
+            `[ONBOARDING] Triggering plan generation for ${ctx.session.user.id}...`,
+          );
           await planService.generatePlan(ctx.session.user.id);
-          console.log(`[ONBOARDING] Plan generated successfully.`);
+          console.log("[ONBOARDING] Plan generated successfully.");
         } catch (error) {
-          console.warn(`[ONBOARDING] Plan generation skipped or failed: ${error.message}`);
+          console.warn(
+            `[ONBOARDING] Plan generation skipped or failed: ${error.message}`,
+          );
         }
       } else {
-        console.log(`[ONBOARDING] Profile not yet complete for plan generation:`, {
-          goal: onboarding.goal,
-          level: onboarding.trainingLevel,
-          days: onboarding.trainingDaysPerWeek,
-          gender: onboarding.gender
-        });
+        console.log(
+          "[ONBOARDING] Profile not yet complete for plan generation:",
+          {
+            goal: onboarding.goal,
+            level: onboarding.trainingLevel,
+            days: onboarding.trainingDaysPerWeek,
+            gender: onboarding.gender,
+          },
+        );
       }
 
       return onboarding;
