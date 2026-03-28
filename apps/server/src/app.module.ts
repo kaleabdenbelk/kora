@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { AnalyticsModule } from "./analytics/analytics.module";
 import { HealthModule } from "./health/health.module";
 import { S3TestModule } from "./s3-test/s3-test.module";
 import { SyncModule } from "./sync/sync.module";
@@ -14,6 +15,7 @@ import { SyncModule } from "./sync/sync.module";
   imports: [
     HealthModule,
     SyncModule,
+    AnalyticsModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

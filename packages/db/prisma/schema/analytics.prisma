@@ -1,0 +1,61 @@
+model BodyMetrics {
+  id           String   @id @default(cuid())
+  userId       String
+  recordedAt   DateTime @default(now())
+  weightKg     Float?
+  neckCm       Float?
+  chestCm      Float?
+  waistCm      Float?
+  hipsCm       Float?
+  leftArmCm    Float?
+  rightArmCm   Float?
+  leftThighCm  Float?
+  rightThighCm Float?
+  bodyFatPct   Float?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recordedAt])
+  @@map("body_metrics")
+}
+
+model PersonalRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  exerciseId   String
+  maxWeightKg  Float
+  reps         Int
+  estimated1RM Float?
+  maxVolume    Float?
+  sessionId    String?
+  recordedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  exercise     Exercise @relation(fields: [exerciseId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@index([userId])
+  @@map("personal_records")
+}
+
+model DailyCaloricLog {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @db.Date
+  basalBurn   Float
+  workoutBurn Float
+  activeBurn  Float    @default(0)
+  totalBurn   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("daily_caloric_logs")
+}

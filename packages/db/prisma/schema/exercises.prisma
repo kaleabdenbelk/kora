@@ -19,28 +19,27 @@ model Exercise {
   caloriesPerSetAvg Int?
   environment       ExerciseEnvironment @default(GYM)
   level             ExerciseLevel       @default(INTERMEDIATE)
-  equipment         ExerciseEquipment[]
-  muscles           ExerciseMuscle[]
-  category          Category?           @relation(fields: [categoryId], references: [id])
-  movementPattern   MovementPattern?    @relation(fields: [movementPatternId], references: [id])
-  templates         ExerciseTemplate[]
-  userExerciseLogs  UserExerciseLog[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   isDeleted         Boolean             @default(false)
+  equipment         ExerciseEquipment[]
+  muscles           ExerciseMuscle[]
+  templates         ExerciseTemplate[]
+  category          Category?           @relation(fields: [categoryId], references: [id])
+  movementPattern   MovementPattern?    @relation(fields: [movementPatternId], references: [id])
+  personalRecords   PersonalRecord[]
+  userExerciseLogs  UserExerciseLog[]
 
   @@map("exercises")
 }
 
-// Removed ExerciseAlternative; we now use alternativeIds natively
-
 model Muscle {
   id        Int              @id @default(autoincrement())
   name      String           @unique
-  exercises ExerciseMuscle[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   isDeleted Boolean          @default(false)
+  exercises ExerciseMuscle[]
 
   @@map("muscles")
 }
@@ -48,10 +47,10 @@ model Muscle {
 model Equipment {
   id        Int                 @id @default(autoincrement())
   name      String              @unique
-  exercises ExerciseEquipment[]
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   isDeleted Boolean             @default(false)
+  exercises ExerciseEquipment[]
 
   @@map("equipment")
 }
@@ -59,10 +58,10 @@ model Equipment {
 model MovementPattern {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  exercises Exercise[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   isDeleted Boolean    @default(false)
+  exercises Exercise[]
 
   @@map("movement_patterns")
 }
@@ -70,10 +69,10 @@ model MovementPattern {
 model Category {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  exercises Exercise[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   isDeleted Boolean    @default(false)
+  exercises Exercise[]
 
   @@map("categories")
 }
@@ -93,8 +92,8 @@ model ExerciseMuscle {
 model ExerciseEquipment {
   exerciseId  String
   equipmentId Int
-  exercise    Exercise  @relation(fields: [exerciseId], references: [id])
   equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  exercise    Exercise  @relation(fields: [exerciseId], references: [id])
 
   @@id([exerciseId, equipmentId])
   @@map("exercise_equipment")

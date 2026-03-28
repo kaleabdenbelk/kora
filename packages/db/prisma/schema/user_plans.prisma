@@ -1,39 +1,43 @@
 model UserPlan {
-  id              String           @id @default(cuid())
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  programId       String?
-  program         Program?         @relation(fields: [programId], references: [id])
-  planJson        Json?            // Snapshot for performance
-  startDate       DateTime
-  endDate         DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  isDeleted       Boolean          @default(false)
-  sessions        UserSession[]
+  id        String        @id @default(cuid())
+  userId    String
+  programId String?
+  planJson  Json?
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  isDeleted Boolean       @default(false)
+  program   Program?      @relation(fields: [programId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions  UserSession[]
 
   @@index([userId])
   @@map("user_plans")
 }
 
 model UserSession {
-  id               String            @id @default(cuid())
-  userId           String
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId           String
-  plan             UserPlan          @relation(fields: [planId], references: [id], onDelete: Cascade)
-  dayNumber        Int
-  week             Int
-  planned          Json
-  completed        Json?
-  startedAt        DateTime?
-  completedAt      DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  isDeleted        Boolean           @default(false)
-  completedStatus  Boolean           @default(false)
-  fatigue          Int?              // 1-10 overall session fatigue
-  exercises        UserExerciseLog[]
+  id                   String            @id @default(cuid())
+  userId               String
+  planId               String
+  dayNumber            Int
+  week                 Int
+  planned              Json
+  completed            Json?
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  isDeleted            Boolean           @default(false)
+  completedStatus      Boolean           @default(false)
+  fatigue              Int?
+  totalDurationSeconds Int?
+  activeMinutes        Float?
+  successPercent       Float?
+  totalVolumeKg        Float?
+  exercises            UserExerciseLog[]
+  plan                 UserPlan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([planId])
@@ -41,22 +45,24 @@ model UserSession {
 }
 
 model UserExerciseLog {
-  id               String      @id @default(cuid())
-  sessionId        String
-  session          UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  exerciseId       String
-  exercise         Exercise    @relation(fields: [exerciseId], references: [id])
-  plannedSets      Int
-  plannedReps      String
-  actualSets       Int?
-  completed        Boolean     @default(false)
-  createdAt        DateTime    @default(now())
-  weightsPerSet    Json?
-  repsPerSet       Json?
-  rpePerSet        Json?       // Intensity per set
-  notes            String?
-  updatedAt        DateTime    @updatedAt
-  isDeleted        Boolean     @default(false)
+  id                  String      @id @default(cuid())
+  sessionId           String
+  exerciseId          String
+  plannedSets         Int
+  plannedReps         String
+  actualSets          Int?
+  completed           Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  weightsPerSet       Json?
+  repsPerSet          Json?
+  rpePerSet           Json?
+  restTimesSeconds    Json?
+  repDurationsSeconds Json?
+  notes               String?
+  updatedAt           DateTime    @updatedAt
+  isDeleted           Boolean     @default(false)
+  exercise            Exercise    @relation(fields: [exerciseId], references: [id])
+  session             UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@map("user_exercise_logs")

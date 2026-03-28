@@ -1,8 +1,6 @@
 model Onboarding {
-  id                  String    @id @default(cuid())
-  userId              String    @unique
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                  String               @id @default(cuid())
+  userId              String               @unique
   preferredName       String?
   gender              Gender?
   age                 Int?
@@ -10,6 +8,9 @@ model Onboarding {
   targetWeight        Float?
   height              Float?
   bmi                 Float?
+  bmr                 Float?
+  tdee                Float?
+  activityLevel       ActivityLevel?
   sleepHours          Float?
   waterDaily          Float?
   trainingLevel       ExperienceLevel?
@@ -17,10 +18,10 @@ model Onboarding {
   trainingDaysPerWeek Int?
   workoutDays         DayOfWeek[]
   goal                TrainingGoal?
-  
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  isDeleted           Boolean   @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  isDeleted           Boolean              @default(false)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("onboarding")
 }
@@ -30,6 +31,14 @@ enum Gender {
   FEMALE
   OTHER
   PREFER_NOT_TO_SAY
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  VERY_ACTIVE
+  EXTRA_ACTIVE
 }
 
 enum ExperienceLevel {

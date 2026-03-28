@@ -1,0 +1,175 @@
+import { Controller, Get, Post, Param, Query, Req, UnauthorizedException, Inject } from "@nestjs/common";
+import { auth } from "@kora/auth";
+import { AnalyticsService } from "./analytics.service";
+
+@Controller("analytics")
+export class AnalyticsController {
+  constructor(@Inject(AnalyticsService) private readonly analyticsService: AnalyticsService) {}
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Auth-scoped routes (used by Expo frontend — no userId in URL)
+  // userId is derived from the Better Auth session token.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  private async resolveUserId(req: any): Promise<string> {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session?.user?.id) throw new UnauthorizedException("Authentication required");
+    return session.user.id;
+  }
+
+  /** GET /analytics/summary?filter=Week */
+  @Get("summary")
+  async getSummary(@Query("filter") filter: string = "Week", @Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const data = await this.analyticsService.getSummary(userId, filter);
+    return { success: true, data: { summary: data } };
+  }
+
+  /** GET /analytics/heatmap?days=180 */
+  @Get("heatmap")
+  async getHeatmap(@Query("days") days: string = "180", @Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const data = await this.analyticsService.getActivityHeatmap(userId, Number(days));
+    // Frontend expects HeatmapData[] array: [{ date, count }]
+    const formatted = Object.entries(data).map(([date, count]) => ({ date, count }));
+    return { success: true, data: { data: formatted } };
+  }
+
+  /** GET /analytics/muscles?filter=Month */
+  @Get("muscles")
+  async getMuscles(@Query("filter") filter: string = "Month", @Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const days = { Day: 1, Week: 7, Month: 30, Year: 365 }[filter] ?? 30;
+    const distribution = await this.analyticsService.getMuscleDistribution(userId, days);
+    return { success: true, data: { distribution } };
+  }
+
+  /** GET /analytics/trends?metric=Tonnage&filter=Week */
+  @Get("trends")
+  async getTrends(
+    @Query("metric") metric: string = "Tonnage",
+    @Query("filter") filter: string = "Week",
+    @Req() req: any,
+  ) {
+    const userId = await this.resolveUserId(req);
+    const data = await this.analyticsService.getTrends(userId, metric, filter);
+    return { success: true, data };
+  }
+
+  /** GET /analytics/streak */
+  @Get("streak")
+  async getStreak(@Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const data = await this.analyticsService.getStreakData(userId);
+    return { success: true, data };
+  }
+
+  /** GET /analytics/last-workout */
+  @Get("last-workout")
+  async getLastWorkout(@Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const workout = await this.analyticsService.getLastWorkout(userId);
+    return { success: true, data: { workout } };
+  }
+
+  /** GET /analytics/profile-summary */
+  @Get("profile-summary")
+  async getProfileSummary(@Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const data = await this.analyticsService.getProfileSummary(userId);
+    return { success: true, data };
+  }
+
+  /** GET /analytics/history?limit=20&offset=0 */
+  @Get("history")
+  async getHistory(
+    @Query("limit") limit: string = "20",
+    @Query("offset") offset: string = "0",
+    @Req() req: any,
+  ) {
+    const userId = await this.resolveUserId(req);
+    const page = Math.floor(Number(offset) / Number(limit)) + 1;
+    const history = await this.analyticsService.getWorkoutHistory(userId, page, Number(limit));
+    return { success: true, data: { history: history.sessions } };
+  }
+
+  /** GET /analytics/personal-records */
+  @Get("personal-records")
+  async getPersonalRecords(@Req() req: any) {
+    const userId = await this.resolveUserId(req);
+    const records = await this.analyticsService.getPersonalRecords(userId);
+    return { success: true, data: { records } };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Admin/internal routes (userId in URL — used by tests and internal tooling)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /** GET /analytics/:userId/dashboard */
+  @Get(":userId/dashboard")
+  async getDashboard(@Param("userId") userId: string) {
+    return this.analyticsService.getDashboardStats(userId);
+  }
+
+  /** GET /analytics/:userId/heatmap?days=365 */
+  @Get(":userId/heatmap")
+  async getHeatmapById(
+    @Param("userId") userId: string,
+    @Query("days") days?: string,
+  ) {
+    return this.analyticsService.getActivityHeatmap(userId, days ? Number(days) : 365);
+  }
+
+  /** GET /analytics/:userId/muscle-distribution?days=30 */
+  @Get(":userId/muscle-distribution")
+  async getMuscleDistribution(
+    @Param("userId") userId: string,
+    @Query("days") days?: string,
+  ) {
+    return this.analyticsService.getMuscleDistribution(userId, days ? Number(days) : 30);
+  }
+
+  /** GET /analytics/:userId/workout-focus?days=30 */
+  @Get(":userId/workout-focus")
+  async getWorkoutFocus(
+    @Param("userId") userId: string,
+    @Query("days") days?: string,
+  ) {
+    return this.analyticsService.getWorkoutFocusBreakdown(userId, days ? Number(days) : 30);
+  }
+
+  /** POST /analytics/:userId/recalculate-metabolic */
+  @Post(":userId/recalculate-metabolic")
+  async recalculateMetabolic(@Param("userId") userId: string) {
+    return this.analyticsService.recalculateAndSaveMetabolicRates(userId);
+  }
+
+  /** GET /analytics/:userId/personal-records */
+  @Get(":userId/personal-records")
+  async getPersonalRecordsById(@Param("userId") userId: string) {
+    const records = await this.analyticsService.getPersonalRecords(userId);
+    return { success: true, data: { records } };
+  }
+
+  /** GET /analytics/:userId/caloric-history */
+  @Get(":userId/caloric-history")
+  async getCaloricHistory(@Param("userId") userId: string) {
+    const logs = await this.analyticsService.getCaloricHistory(userId);
+    return { success: true, data: { logs } };
+  }
+
+  /** GET /analytics/:userId/history?page=1&limit=10 */
+  @Get(":userId/history")
+  async getWorkoutHistory(
+    @Param("userId") userId: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    const history = await this.analyticsService.getWorkoutHistory(
+      userId,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10,
+    );
+    return { success: true, data: history };
+  }
+}

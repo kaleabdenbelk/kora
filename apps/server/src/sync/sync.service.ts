@@ -1,6 +1,7 @@
 import { PlanService } from "@kora/api/services/plan.service";
 import prisma from "@kora/db";
 import { Injectable } from "@nestjs/common";
+import { AnalyticsService } from "../analytics/analytics.service";
 
 export interface SyncMutation {
   id: string;
@@ -15,6 +16,8 @@ export interface SyncPayload {
 
 @Injectable()
 export class SyncService {
+  constructor(private readonly analytics: AnalyticsService) {}
+
   async processSync(payload: SyncPayload, userId: string) {
     const { lastSyncTimestamp, mutations } = payload;
     const currentServerTimestamp = new Date().toISOString();
@@ -33,62 +36,76 @@ export class SyncService {
           if (mutation.type === "SESSION_COMPLETE") {
             const data = mutation.payload;
 
+            // Typed exercise payload with new analytics fields
+            type ExercisePayload = {
+              id?: string;
+              exerciseId: string;
+              plannedSets?: number;
+              plannedReps?: string;
+              actualSets?: number;
+              completed?: boolean;
+              weightsPerSet?: number[];
+              repsPerSet?: number[];
+              rpePerSet?: number[];
+              restTimesSeconds?: number[];
+              repDurationsSeconds?: number[][];
+              notes?: string;
+            };
+
+            const exercises: ExercisePayload[] = Array.isArray(data.exercises)
+              ? (data.exercises as ExercisePayload[])
+              : [];
+
             await prisma.$transaction(async (tx) => {
-              // 1. Update the session status
+              // 1. Update the session with standard metadata
               await tx.userSession.update({
                 where: { id: data.sessionId },
                 data: {
                   completedStatus: true,
                   completedAt: new Date(data.completedAt || new Date()),
                   fatigue: data.fatigue,
-                  completed: data.completedData, // Store the raw completed JSON if provided
+                  completed: data.completedData,
+                  totalDurationSeconds: data.totalDurationSeconds ?? null,
+                  activeMinutes: data.activeMinutes ?? null,
+                  // These will be refined by the analytics engine below
                 },
               });
 
-              // 2. Create or update exercise logs
-              if (data.exercises && Array.isArray(data.exercises)) {
-                for (const ex of data.exercises as Array<{
-                  id?: string;
-                  exerciseId: string;
-                  plannedSets?: number;
-                  plannedReps?: string;
-                  actualSets?: number;
-                  completed?: boolean;
-                  weightsPerSet?: number[];
-                  repsPerSet?: number[];
-                  rpePerSet?: number[];
-                  notes?: string;
-                }>) {
-                  await tx.userExerciseLog.upsert({
-                    where: {
-                      id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
-                    },
-                    create: {
-                      id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
-                      sessionId: data.sessionId,
-                      exerciseId: ex.exerciseId,
-                      plannedSets: ex.plannedSets || 0,
-                      plannedReps: ex.plannedReps || "",
-                      actualSets: ex.actualSets,
-                      completed: ex.completed ?? true,
-                      weightsPerSet: ex.weightsPerSet,
-                      repsPerSet: ex.repsPerSet,
-                      rpePerSet: ex.rpePerSet,
-                      notes: ex.notes,
-                    },
-                    update: {
-                      actualSets: ex.actualSets,
-                      completed: ex.completed ?? true,
-                      weightsPerSet: ex.weightsPerSet,
-                      repsPerSet: ex.repsPerSet,
-                      rpePerSet: ex.rpePerSet,
-                      notes: ex.notes,
-                    },
-                  });
-                }
+              // 2. Upsert exercise logs
+              for (const ex of exercises) {
+                await tx.userExerciseLog.upsert({
+                  where: {
+                    id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
+                  },
+                  create: {
+                    id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
+                    sessionId: data.sessionId,
+                    exerciseId: ex.exerciseId,
+                    plannedSets: ex.plannedSets || 0,
+                    plannedReps: ex.plannedReps || "",
+                    actualSets: ex.actualSets,
+                    completed: ex.completed ?? true,
+                    weightsPerSet: ex.weightsPerSet,
+                    repsPerSet: ex.repsPerSet,
+                    rpePerSet: ex.rpePerSet,
+                    restTimesSeconds: ex.restTimesSeconds,
+                    repDurationsSeconds: ex.repDurationsSeconds,
+                    notes: ex.notes,
+                  },
+                  update: {
+                    actualSets: ex.actualSets,
+                    completed: ex.completed ?? true,
+                    weightsPerSet: ex.weightsPerSet,
+                    repsPerSet: ex.repsPerSet,
+                    rpePerSet: ex.rpePerSet,
+                    restTimesSeconds: ex.restTimesSeconds,
+                    repDurationsSeconds: ex.repDurationsSeconds,
+                    notes: ex.notes,
+                  },
+                });
               }
 
-              // 3. Touch the parent plan to ensure it's picked up in delta syncs
+              // 3. Touch the parent plan
               const session = await tx.userSession.findUnique({
                 where: { id: data.sessionId },
                 select: { planId: true },
@@ -101,12 +118,45 @@ export class SyncService {
               }
             });
 
+            // 4. Process analytics engine (Source of Truth for PRs, Volume, etc.)
+            await this.analytics.processSessionEngine(userId, data.sessionId).catch(
+              (err: unknown) =>
+                console.warn("[SyncService] Analytics engine failed:", err),
+            );
+
             console.log(
               `[SyncService] Successfully processed SESSION_COMPLETE for session ${data.sessionId}`,
             );
           } else if (mutation.type === "PROFILE_UPDATE") {
-            console.log("[SyncService] Processing PROFILE_UPDATE");
-            // Update user profile via Prisma
+            const data = mutation.payload;
+            console.log(`[SyncService] Processing PROFILE_UPDATE for ${userId}`);
+
+            await prisma.$transaction(async (tx) => {
+              // Update core user fields
+              await tx.user.update({
+                where: { id: userId },
+                data: {
+                  name: data.name,
+                  image: data.image,
+                },
+              });
+
+              // Update onboarding fields if present
+              if (data.onboarding) {
+                await tx.onboarding.upsert({
+                  where: { userId },
+                  create: { userId, ...data.onboarding },
+                  update: { ...data.onboarding },
+                });
+              }
+            });
+
+            // Recalculate BMR/TDEE after profile update (non-critical)
+            await this.analytics
+              .recalculateAndSaveMetabolicRates(userId)
+              .catch((err: unknown) =>
+                console.warn("[SyncService] BMR/TDEE recalc failed:", err),
+              );
           }
 
           ackIds.push(mutation.id);
@@ -149,6 +199,9 @@ export class SyncService {
 
       if (profile) {
         deltas.profile = profile;
+        console.log(`[SyncService] Included profile delta for user ${userId}`);
+      } else {
+        console.warn(`[SyncService] Profile NOT FOUND for user ${userId}`);
       }
 
       // First sync should hydrate full core data for this user.
