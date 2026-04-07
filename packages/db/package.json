@@ -12,7 +12,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "db:push": "prisma db push --config=prisma.config.ts",
-    "db:generate": "prisma generate --config=prisma.config.ts",
+    "db:generate": "DATABASE_URL=$DATABASE_URL prisma generate --config=prisma.config.ts",
     "db:migrate": "prisma migrate dev --config=prisma.config.ts",
     "db:reset": "prisma migrate reset --force --config=prisma.config.ts",
     "db:studio": "prisma studio --config=prisma.config.ts",
