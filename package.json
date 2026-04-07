@@ -8,6 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "turbo dev",
+    "start": "pnpm --filter server start",
     "build": "turbo build",
     "check-types": "turbo check-types",
     "dev:native": "turbo -F native dev",
