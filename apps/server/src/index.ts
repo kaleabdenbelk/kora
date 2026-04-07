@@ -253,12 +253,12 @@ async function bootstrap() {
               const weeks = [];
               for (let w = 1; w <= program.durationWeeks; w++) {
                 // Map templates to actual sessions
-                const sessions = mainPhase.workouts.map((wt) => {
+                const sessions = mainPhase.workouts.map((wt: any) => {
                   return {
                     dayNumber: wt.dayNumber,
                     name: wt.name,
                     rest: false,
-                    exercises: wt.exercises.map((et) => ({
+                    exercises: wt.exercises.map((et: any) => ({
                       id: et.exercise.id,
                       exerciseId: et.exercise.id,
                       name: et.exercise.name,

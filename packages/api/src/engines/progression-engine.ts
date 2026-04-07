@@ -172,11 +172,13 @@ export class ProgressionEngine {
     const parts = reps.split("-").map((p) => Number.parseInt(p.trim(), 10));
     if (
       parts.length === 2 &&
+      parts[0] !== undefined &&
+      parts[1] !== undefined &&
       !Number.isNaN(parts[0]) &&
       !Number.isNaN(parts[1])
     )
       return [parts[0], parts[1]];
-    if (parts.length === 1 && !Number.isNaN(parts[0]))
+    if (parts.length === 1 && parts[0] !== undefined && !Number.isNaN(parts[0]))
       return [parts[0], parts[0]];
     return [8, 12]; // Default fallback
   }

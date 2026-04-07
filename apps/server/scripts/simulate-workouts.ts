@@ -38,15 +38,15 @@ async function main() {
 
   // Day 1: Moderate intensity
   console.log("\n📆 Day 1 Simulation...");
-  await simulateSession(userId, sessions[0].id, 1.0); // 1.0 multiplier for weights
+  if (sessions[0]) await simulateSession(userId, sessions[0].id, 1.0); // 1.0 multiplier for weights
 
   // Day 2: Higher intensity (PR territory)
   console.log("\n📆 Day 2 Simulation (PR Weight)...");
-  await simulateSession(userId, sessions[1].id, 1.1); // 10% heavier
+  if (sessions[1]) await simulateSession(userId, sessions[1].id, 1.1); // 10% heavier
 
   // Day 3: High Volume (PR Volume)
   console.log("\n📆 Day 3 Simulation (PR Volume)...");
-  await simulateSession(userId, sessions[2].id, 0.9, 2); // Slightly lighter but 2x sets
+  if (sessions[2]) await simulateSession(userId, sessions[2].id, 0.9, 2); // Slightly lighter but 2x sets
 
   // Final Output
   console.log("\n📊 --- FINAL ANALYTICS REPORT ---");
@@ -57,7 +57,7 @@ async function main() {
   console.log(
     "\nPersonal Records:",
     JSON.stringify(
-      prs.map((p) => ({
+      prs.map((p: any) => ({
         exercise: p.exercise?.name || "Unknown",
         weight: p.maxWeightKg,
         volume: p.maxVolume,

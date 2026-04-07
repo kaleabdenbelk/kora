@@ -1,5 +1,4 @@
 import { publicProcedure, router } from "../index";
-import { z } from "zod";
 import { exerciseRouter } from "./exercise";
 import { onboardingRouter } from "./onboarding";
 import { planRouter } from "./plan";

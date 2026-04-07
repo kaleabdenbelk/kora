@@ -241,7 +241,7 @@ export class AnalyticsService {
       splitCounts[split] = (splitCounts[split] ?? 0) + 1;
     }
 
-    const total = Object.values(splitCounts).reduce((a, b) => a + b, 0);
+    const total = Object.values(splitCounts).reduce((a: any, b: any) => a + b, 0);
     const result: Record<string, number> = {};
     for (const [k, v] of Object.entries(splitCounts)) {
       result[k] = total > 0 ? Math.round((v / total) * 100) : 0;
@@ -327,8 +327,8 @@ export class AnalyticsService {
         ? (log.restTimesSeconds as number[])
         : [];
       totalActiveSeconds +=
-        repDurs.reduce((a, b) => a + b, 0) +
-        restDurs.reduce((a, b) => a + b, 0);
+        repDurs.reduce((a: any, b: any) => a + b, 0) +
+        restDurs.reduce((a: any, b: any) => a + b, 0);
     }
     const activeMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
 
@@ -675,7 +675,7 @@ export class AnalyticsService {
         bmiStatus,
         goalWeight: onboarding?.targetWeight ?? 0,
       },
-      bestOf: prList.map((pr) => ({
+      bestOf: prList.map((pr: any) => ({
         name: pr.exercise.name,
         weight: pr.maxWeightKg,
         reps: pr.reps ?? 1,
@@ -717,7 +717,7 @@ export class AnalyticsService {
       return { labels: [], datasets: [{ data: [] }] };
     }
 
-    const labels = sessions.map((s) =>
+    const labels = sessions.map((s: any) =>
       s.completedAt
         ? s.completedAt.toLocaleDateString("en-US", { weekday: "short" })
         : "",
@@ -726,10 +726,10 @@ export class AnalyticsService {
     let data: number[];
     switch (metric) {
       case "Tonnage":
-        data = sessions.map((s) => s.totalVolumeKg ?? 0);
+        data = sessions.map((s: any) => s.totalVolumeKg ?? 0);
         break;
       case "Time":
-        data = sessions.map((s) =>
+        data = sessions.map((s: any) =>
           s.totalDurationSeconds ? Math.round(s.totalDurationSeconds / 60) : 0,
         );
         break;
@@ -775,17 +775,17 @@ export class AnalyticsService {
     ]);
 
     const totalTonnage = sessions.reduce(
-      (a, s) => a + (s.totalVolumeKg ?? 0),
+      (a: any, s: any) => a + (s.totalVolumeKg ?? 0),
       0,
     );
     const totalDuration = sessions.reduce(
-      (a, s) => a + (s.totalDurationSeconds ?? 0),
+      (a: any, s: any) => a + (s.totalDurationSeconds ?? 0),
       0,
     );
     const avgSuccess =
       sessions.length > 0
         ? Math.round(
-            sessions.reduce((a, s) => a + (s.successPercent ?? 100), 0) /
+            sessions.reduce((a: any, s: any) => a + (s.successPercent ?? 100), 0) /
               sessions.length,
           )
         : 0;
