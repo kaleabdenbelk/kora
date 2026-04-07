@@ -11,6 +11,7 @@
   "pnpm": "10.x"
 },
   "scripts": {
+    "install": "pnpm install --reporter=ndjson",
     "dev": "turbo dev",
     "start": "pnpm --filter server start",
     "build": "turbo build",
