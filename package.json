@@ -46,5 +46,4 @@
       "biome check --write ."
     ]
   }
-  // "packageManager": "pnpm@10.30.1"
 }
