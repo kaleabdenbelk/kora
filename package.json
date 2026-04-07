@@ -6,6 +6,10 @@
     "packages/*"
   ],
   "type": "module",
+  "engines": {
+  "node": "22.x",
+  "pnpm": "10.x"
+},
   "scripts": {
     "dev": "turbo dev",
     "start": "pnpm --filter server start",
