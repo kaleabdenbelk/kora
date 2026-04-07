@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import prisma from "@kora/db";
-import { AnalyticsService } from "./analytics.service";
 import { PlanService } from "@kora/api/services/plan.service";
+import prisma from "@kora/db";
+import { beforeAll, describe, expect, it } from "vitest";
 import { ensureProgramTemplates } from "../sync/seed.util";
+import { AnalyticsService } from "./analytics.service";
 
 describe("Analytics Simulation (End-to-End)", () => {
   const userId = "test-user-sim-999";
@@ -12,9 +12,31 @@ describe("Analytics Simulation (End-to-End)", () => {
   beforeAll(async () => {
     // Cleanup
     await prisma.user.deleteMany({ where: { id: userId } });
-    
+
     // Seed basic exercises to satisfy FK constraints
-    const exerciseIds = ["1", "2", "3", "4", "5", "6", "11", "12", "13", "14", "16", "24", "30", "35", "36", "44", "49", "51", "52", "59", "60"];
+    const exerciseIds = [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "11",
+      "12",
+      "13",
+      "14",
+      "16",
+      "24",
+      "30",
+      "35",
+      "36",
+      "44",
+      "49",
+      "51",
+      "52",
+      "59",
+      "60",
+    ];
     for (const id of exerciseIds) {
       await prisma.exercise.upsert({
         where: { id },
@@ -26,7 +48,7 @@ describe("Analytics Simulation (End-to-End)", () => {
           level: "BEGINNER",
           environment: "GYM",
           instructions: ["Do it."],
-        }
+        },
       });
     }
 
@@ -37,7 +59,7 @@ describe("Analytics Simulation (End-to-End)", () => {
   it("should complete onboarding and generate a plan", async () => {
     // 1. Create User
     await prisma.user.create({
-      data: { id: userId, email: "sim@test.app", name: "Sim User" }
+      data: { id: userId, email: "sim@test.app", name: "Sim User" },
     });
 
     // 2. Onboarding
@@ -51,8 +73,8 @@ describe("Analytics Simulation (End-to-End)", () => {
         goal: "HYPERTROPHY",
         trainingLevel: "BEGINNER",
         trainingDaysPerWeek: 3,
-        activityLevel: "VERY_ACTIVE"
-      }
+        activityLevel: "VERY_ACTIVE",
+      },
     });
 
     // 3. Metabolic Rates
@@ -63,7 +85,9 @@ describe("Analytics Simulation (End-to-End)", () => {
     const selectionCount = await prisma.programSelection.count();
     console.log("DB PROGRAM SELECTION COUNT:", selectionCount);
     if (selectionCount === 0) {
-      console.warn("⚠️ ProgramSelection table is EMPTY. Plan generation will always fail.");
+      console.warn(
+        "⚠️ ProgramSelection table is EMPTY. Plan generation will always fail.",
+      );
     }
 
     // 4. Generate Plan
@@ -74,15 +98,17 @@ describe("Analytics Simulation (End-to-End)", () => {
       console.warn("PLAN GENERATION FAILED, trying manual session...", e);
       const program = await prisma.program.findFirst();
       if (program) {
-        const up = await prisma.userPlan.create({ data: { userId, programId: program.id, startDate: new Date() } });
+        const up = await prisma.userPlan.create({
+          data: { userId, programId: program.id, startDate: new Date() },
+        });
         await prisma.userSession.create({
           data: {
             userId,
             planId: up.id,
             dayNumber: 1,
             week: 1,
-            planned: { name: "Manual", exercises: [] }
-          }
+            planned: { name: "Manual", exercises: [] },
+          },
         });
       }
     }
@@ -92,7 +118,7 @@ describe("Analytics Simulation (End-to-End)", () => {
     // Wait a bit to ensure session is in DB
     const session = await prisma.userSession.findFirst({
       where: { userId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     if (!session) throw new Error("No session for workout simulation");
@@ -106,8 +132,8 @@ describe("Analytics Simulation (End-to-End)", () => {
         plannedSets: 3,
         plannedReps: "10",
         weightsPerSet: [100, 100, 100],
-        repsPerSet: [10, 10, 10]
-      }
+        repsPerSet: [10, 10, 10],
+      },
     });
 
     await prisma.userSession.update({
@@ -117,8 +143,8 @@ describe("Analytics Simulation (End-to-End)", () => {
         startedAt: new Date(Date.now() - 3600 * 1000),
         completedAt: new Date(),
         totalDurationSeconds: 3600,
-        fatigue: 8
-      }
+        fatigue: 8,
+      },
     });
 
     await analytics.processSessionEngine(userId, session.id);
@@ -126,11 +152,13 @@ describe("Analytics Simulation (End-to-End)", () => {
     const stats = await analytics.getDashboardStats(userId);
     console.log("DASHBOARD STATS:", JSON.stringify(stats, null, 2));
 
-    const updatedSession = await prisma.userSession.findUnique({ where: { id: session.id } });
+    const updatedSession = await prisma.userSession.findUnique({
+      where: { id: session.id },
+    });
     console.log("UPDATED SESSION METRICS:", {
       successPercent: updatedSession?.successPercent,
       totalVolumeKg: updatedSession?.totalVolumeKg,
-      activeMinutes: updatedSession?.activeMinutes
+      activeMinutes: updatedSession?.activeMinutes,
     });
 
     const heatmap = await analytics.getActivityHeatmap(userId);

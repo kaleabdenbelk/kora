@@ -20,6 +20,7 @@
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
     "ioredis": "^5.10.1",
+    "trpc-openapi": "^1.2.0",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -3,10 +3,9 @@ import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis"
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-
+import { AnalyticsModule } from "./analytics/analytics.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { AnalyticsModule } from "./analytics/analytics.module";
 import { HealthModule } from "./health/health.module";
 import { S3TestModule } from "./s3-test/s3-test.module";
 import { SyncModule } from "./sync/sync.module";

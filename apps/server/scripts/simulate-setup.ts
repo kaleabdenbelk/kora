@@ -1,8 +1,8 @@
 import prisma from "@kora/db";
-import { PlanService } from "../../../packages/api/src/services/plan.service";
-import { AnalyticsService } from "../src/analytics/analytics.service";
 import dotenv from "dotenv";
 import path from "path";
+import { PlanService } from "../../../packages/api/src/services/plan.service";
+import { AnalyticsService } from "../src/analytics/analytics.service";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
@@ -62,7 +62,9 @@ async function main() {
     await planService.generatePlan(userId);
     console.log("✅ Plan generated.");
   } catch (e: any) {
-    console.warn("⚠️ Plan generation failed (no match), falling back to first program...");
+    console.warn(
+      "⚠️ Plan generation failed (no match), falling back to first program...",
+    );
     const program = await prisma.program.findFirst();
     if (program) {
       // Manual creation if service fails (using a simplified version of generatePlan logic)
@@ -72,7 +74,7 @@ async function main() {
           userId,
           programId: program.id,
           startDate,
-        }
+        },
       });
       // We also need sessions for the engine
       await prisma.userSession.create({
@@ -81,8 +83,8 @@ async function main() {
           planId: userPlan.id, // Fixed: Added planId
           dayNumber: 1,
           week: 1,
-          planned: { name: "Manual Session", exercises: [] }
-        }
+          planned: { name: "Manual Session", exercises: [] },
+        },
       });
       console.log("✅ Fallback plan created.");
     } else {
@@ -90,7 +92,9 @@ async function main() {
     }
   }
 
-  console.log("\nSetup complete. Now run: npx tsx scripts/simulate-workouts.ts");
+  console.log(
+    "\nSetup complete. Now run: npx tsx scripts/simulate-workouts.ts",
+  );
 }
 
 main().catch(console.error);

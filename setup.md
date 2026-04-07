@@ -74,3 +74,11 @@ if its running docker
 sudo docker stop <container_id> the one using 5432
 
 sudo docker start kora-postgres
+
+
+copypaste this
+
+sudo docker start kora-redis
+sudo systemctl stop postgresql
+sudo docker start kora-postgres
+sudo docker compose up -d db minio

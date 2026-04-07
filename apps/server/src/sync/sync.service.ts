@@ -1,7 +1,7 @@
 import { PlanService } from "@kora/api/services/plan.service";
 import prisma from "@kora/db";
 import { Injectable } from "@nestjs/common";
-import { AnalyticsService } from "../analytics/analytics.service";
+import type { AnalyticsService } from "../analytics/analytics.service";
 
 export interface SyncMutation {
   id: string;
@@ -119,17 +119,20 @@ export class SyncService {
             });
 
             // 4. Process analytics engine (Source of Truth for PRs, Volume, etc.)
-            await this.analytics.processSessionEngine(userId, data.sessionId).catch(
-              (err: unknown) =>
+            await this.analytics
+              .processSessionEngine(userId, data.sessionId)
+              .catch((err: unknown) =>
                 console.warn("[SyncService] Analytics engine failed:", err),
-            );
+              );
 
             console.log(
               `[SyncService] Successfully processed SESSION_COMPLETE for session ${data.sessionId}`,
             );
           } else if (mutation.type === "PROFILE_UPDATE") {
             const data = mutation.payload;
-            console.log(`[SyncService] Processing PROFILE_UPDATE for ${userId}`);
+            console.log(
+              `[SyncService] Processing PROFILE_UPDATE for ${userId}`,
+            );
 
             await prisma.$transaction(async (tx) => {
               // Update core user fields

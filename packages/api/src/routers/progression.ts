@@ -20,6 +20,7 @@ export const progressionRouter = router({
         exerciseId: z.string(),
       }),
     )
+    .output(z.any())
     .mutation(async ({ ctx, input }) => {
       const { exerciseId, ...options } = input;
       console.log(

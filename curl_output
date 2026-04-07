@@ -1,0 +1,27 @@
+* Host localhost:3000 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:3000...
+* Connected to localhost (::1) port 3000
+* using HTTP/1.x
+> GET /api/auth/login/social/google?callbackURL=http%3A%2F%2Flocalhost%3A8081 HTTP/1.1
+> Host: localhost:3000
+> User-Agent: curl/8.15.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 404 Not Found
+< X-Powered-By: Express
+< Access-Control-Allow-Origin: http://localhost:8081
+< Vary: Origin
+< Access-Control-Allow-Credentials: true
+< Date: Fri, 03 Apr 2026 14:59:48 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< Transfer-Encoding: chunked
+< 
+{ [5 bytes data]
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Connection #0 to host localhost left intact

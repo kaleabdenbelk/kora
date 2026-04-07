@@ -1,14 +1,16 @@
 import prisma from "@kora/db";
 import { env } from "@kora/env/server";
 import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prismaAdapter } from "@better-auth/prisma-adapter";
+import { expo } from "@better-auth/expo";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
-  trustedOrigins: [env.CORS_ORIGIN],
+  trustedOrigins: [env.CORS_ORIGIN, "kora://"],
+  baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
   },
@@ -19,5 +21,11 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
-  plugins: [],
+  socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    },
+  },
+  plugins: [expo()],
 });

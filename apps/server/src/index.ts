@@ -106,6 +106,15 @@ async function bootstrap() {
     },
   );
 
+  // 3a. Connectivity Test Endpoint
+  expressApp.post("/api/test-post", (req: any, res: any) => {
+    res.json({
+      ok: true,
+      message: "POST received successfully",
+      echo: req.body,
+    });
+  });
+
   // 3b. Onboarding status for route gating on mobile/web clients
   expressApp.get("/api/onboarding/status", async (req: any, res: any) => {
     try {
@@ -332,7 +341,9 @@ async function bootstrap() {
     next();
   });
 
-  expressApp.all("/api/auth/*path", toNodeHandler(auth));
+  expressApp.all("/api/auth/*path", (req: any, res: any) => {
+    return toNodeHandler(auth)(req, res);
+  });
 
   // 4. tRPC handler
   const { createExpressMiddleware } = await import(
@@ -340,7 +351,6 @@ async function bootstrap() {
   );
   const { appRouter } = await import("@kora/api/routers/index");
   const { createContext } = await import("@kora/api/context");
-
   app.use(
     "/trpc",
     createExpressMiddleware({

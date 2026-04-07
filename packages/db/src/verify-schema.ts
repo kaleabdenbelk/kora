@@ -10,11 +10,17 @@ async function verify() {
     `;
     console.log("Columns in 'user' table:");
     console.table(columns);
-    
+
     // Check for specific columns
-    const columnNames = (columns as any[]).map(c => c.column_name);
-    const expectedColumns = ["isDeleted", "role", "currentStreak", "longestStreak", "lastWorkoutDate"];
-    
+    const columnNames = (columns as any[]).map((c) => c.column_name);
+    const expectedColumns = [
+      "isDeleted",
+      "role",
+      "currentStreak",
+      "longestStreak",
+      "lastWorkoutDate",
+    ];
+
     for (const col of expectedColumns) {
       if (columnNames.includes(col)) {
         console.log(`✅ Column '${col}' exists.`);

@@ -1,9 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import type { OpenApiMeta } from "trpc-openapi/dist/index.js";
 
 import type { Context } from "./context";
 import { createRateLimiter } from "./middlewares/rate-limit";
 
-export const t = initTRPC.context<Context>().create();
+export const t = initTRPC.context<Context>().meta<OpenApiMeta>().create();
 
 export const router = t.router;
 

@@ -1,7 +1,7 @@
 import prisma from "@kora/db";
-import { AnalyticsService } from "../src/analytics/analytics.service";
 import dotenv from "dotenv";
 import path from "path";
+import { AnalyticsService } from "../src/analytics/analytics.service";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
@@ -28,7 +28,9 @@ async function main() {
   });
 
   if (sessions.length === 0) {
-    console.error("❌ No sessions found for user. Plan generation might have failed.");
+    console.error(
+      "❌ No sessions found for user. Plan generation might have failed.",
+    );
     return;
   }
 
@@ -52,15 +54,27 @@ async function main() {
   const prs = await analytics.getPersonalRecords(userId);
 
   console.log("\nDashboard Stats:", JSON.stringify(stats, null, 2));
-  console.log("\nPersonal Records:", JSON.stringify(prs.map(p => ({
-    exercise: p.exercise?.name || "Unknown",
-    weight: p.maxWeightKg,
-    volume: p.maxVolume,
-    est1RM: p.estimated1RM
-  })), null, 2));
+  console.log(
+    "\nPersonal Records:",
+    JSON.stringify(
+      prs.map((p) => ({
+        exercise: p.exercise?.name || "Unknown",
+        weight: p.maxWeightKg,
+        volume: p.maxVolume,
+        est1RM: p.estimated1RM,
+      })),
+      null,
+      2,
+    ),
+  );
 }
 
-async function simulateSession(userId: string, sessionId: string, weightMult: number, setMult = 1) {
+async function simulateSession(
+  userId: string,
+  sessionId: string,
+  weightMult: number,
+  setMult = 1,
+) {
   const analytics = new AnalyticsService();
   const session = await prisma.userSession.findUnique({
     where: { id: sessionId },
@@ -75,9 +89,11 @@ async function simulateSession(userId: string, sessionId: string, weightMult: nu
   // 1. Create Exercise Logs
   for (const ex of planned.exercises) {
     const sets = ex.sets * setMult;
-    const weights = Array(sets).fill(Math.round((parseInt(ex.intensity) || 50) * weightMult));
-    const reps = Array(sets).fill(parseInt(ex.reps) || 10);
-    
+    const weights = Array(sets).fill(
+      Math.round((Number.parseInt(ex.intensity) || 50) * weightMult),
+    );
+    const reps = Array(sets).fill(Number.parseInt(ex.reps) || 10);
+
     await prisma.userExerciseLog.create({
       data: {
         sessionId,
@@ -87,7 +103,7 @@ async function simulateSession(userId: string, sessionId: string, weightMult: nu
         plannedReps: ex.reps, // Added to fix type error
         weightsPerSet: weights,
         repsPerSet: reps,
-      }
+      },
     });
   }
 
@@ -100,7 +116,7 @@ async function simulateSession(userId: string, sessionId: string, weightMult: nu
       completedAt,
       totalDurationSeconds: 45 * 60,
       fatigue: 7, // Scale 1-10
-    }
+    },
   });
 
   // 3. Trigger Analytics Engine
