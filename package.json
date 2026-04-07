@@ -8,7 +8,7 @@
   "type": "module",
   "engines": {
   "node": "22.x",
-  "pnpm": "10.x"
+  "pnpm": "pnpm@10.30.1"
 },
   "scripts": {
     "dev": "turbo dev",
@@ -45,6 +45,6 @@
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
       "biome check --write ."
     ]
-  },
-  "packageManager": "pnpm@10.30.1"
+  }
+  // "packageManager": "pnpm@10.30.1"
 }
