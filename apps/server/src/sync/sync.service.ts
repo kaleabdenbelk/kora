@@ -1,6 +1,6 @@
 import { PlanService } from "@kora/api/services/plan.service";
 import prisma from "@kora/db";
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { AnalyticsService } from "../analytics/analytics.service";
 
 export interface SyncMutation {
@@ -16,7 +16,10 @@ export interface SyncPayload {
 
 @Injectable()
 export class SyncService {
-  constructor(private readonly analytics: AnalyticsService) {}
+  constructor(
+    @Inject(forwardRef(() => AnalyticsService))
+    private readonly analytics: AnalyticsService,
+  ) {}
 
   async processSync(payload: SyncPayload, userId: string) {
     const { lastSyncTimestamp, mutations } = payload;

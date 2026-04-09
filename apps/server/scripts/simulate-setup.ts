@@ -1,7 +1,7 @@
-import prisma from "@kora/db";
-import dotenv from "dotenv";
 import path from "node:path";
 import { PlanService } from "@kora/api/services/plan.service";
+import prisma from "@kora/db";
+import dotenv from "dotenv";
 import { AnalyticsService } from "../src/analytics/analytics.service";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });

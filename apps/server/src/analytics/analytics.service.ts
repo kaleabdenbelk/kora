@@ -16,8 +16,6 @@ export interface BmrTdeeResult {
 
 @Injectable()
 export class AnalyticsService {
-  // ── Metabolic Calculations ──────────────────────────────────────────────────
-
   /**
    * Mifflin-St Jeor BMR formula (most accurate for modern fitness apps).
    * Men:   (10 × kg) + (6.25 × cm) – (5 × age) + 5
@@ -241,7 +239,10 @@ export class AnalyticsService {
       splitCounts[split] = (splitCounts[split] ?? 0) + 1;
     }
 
-    const total = Object.values(splitCounts).reduce((a: any, b: any) => a + b, 0);
+    const total = Object.values(splitCounts).reduce(
+      (a: number, b: number) => a + b,
+      0,
+    );
     const result: Record<string, number> = {};
     for (const [k, v] of Object.entries(splitCounts)) {
       result[k] = total > 0 ? Math.round((v / total) * 100) : 0;
@@ -327,8 +328,8 @@ export class AnalyticsService {
         ? (log.restTimesSeconds as number[])
         : [];
       totalActiveSeconds +=
-        repDurs.reduce((a: any, b: any) => a + b, 0) +
-        restDurs.reduce((a: any, b: any) => a + b, 0);
+        repDurs.reduce((a: number, b: number) => a + b, 0) +
+        restDurs.reduce((a: number, b: number) => a + b, 0);
     }
     const activeMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
 
@@ -618,13 +619,14 @@ export class AnalyticsService {
       duration: session.totalDurationSeconds
         ? Math.round(session.totalDurationSeconds / 60)
         : 0,
-      exercisesCompleted: (session.exercises as any[]).filter(
-        (e: any) => e.completed,
-      ).length,
-      totalExercises: (session.exercises as any[]).length,
+      exercisesCompleted: (
+        session.exercises as Array<{ completed: boolean }>
+      ).filter((e) => e.completed).length,
+      totalExercises: (session.exercises as unknown[]).length,
       caloriesBurned: 0, // Placeholder — pull from DailyCaloricLog if needed
       weightLifted: session.totalVolumeKg ?? 0,
-      planName: (session.plan as any)?.program?.name ?? "Workout",
+      planName:
+        (session.plan as Record<string, any>)?.program?.name ?? "Workout",
       sessionName: planned?.name ?? `Day ${session.dayNumber}`,
     };
   }
@@ -675,7 +677,7 @@ export class AnalyticsService {
         bmiStatus,
         goalWeight: onboarding?.targetWeight ?? 0,
       },
-      bestOf: prList.map((pr: any) => ({
+      bestOf: prList.map((pr: Record<string, any>) => ({
         name: pr.exercise.name,
         weight: pr.maxWeightKg,
         reps: pr.reps ?? 1,
@@ -717,7 +719,7 @@ export class AnalyticsService {
       return { labels: [], datasets: [{ data: [] }] };
     }
 
-    const labels = sessions.map((s: any) =>
+    const labels = sessions.map((s: Record<string, any>) =>
       s.completedAt
         ? s.completedAt.toLocaleDateString("en-US", { weekday: "short" })
         : "",
@@ -726,7 +728,7 @@ export class AnalyticsService {
     let data: number[];
     switch (metric) {
       case "Tonnage":
-        data = sessions.map((s: any) => s.totalVolumeKg ?? 0);
+        data = sessions.map((s: Record<string, any>) => s.totalVolumeKg ?? 0);
         break;
       case "Time":
         data = sessions.map((s: any) =>
@@ -775,18 +777,20 @@ export class AnalyticsService {
     ]);
 
     const totalTonnage = sessions.reduce(
-      (a: any, s: any) => a + (s.totalVolumeKg ?? 0),
+      (a: number, s: any) => a + (s.totalVolumeKg ?? 0),
       0,
     );
     const totalDuration = sessions.reduce(
-      (a: any, s: any) => a + (s.totalDurationSeconds ?? 0),
+      (a: number, s: any) => a + (s.totalDurationSeconds ?? 0),
       0,
     );
     const avgSuccess =
       sessions.length > 0
         ? Math.round(
-            sessions.reduce((a: any, s: any) => a + (s.successPercent ?? 100), 0) /
-              sessions.length,
+            sessions.reduce(
+              (a: number, s: any) => a + (s.successPercent ?? 100),
+              0,
+            ) / sessions.length,
           )
         : 0;
 
@@ -831,7 +835,17 @@ export class AnalyticsService {
       }),
     ]);
 
-    const activityMap = new Map<string, any>();
+    const activityMap = new Map<
+      string,
+      {
+        date: string;
+        caloriesBurned: number;
+        activeMinutes: number;
+        workoutsCount: number;
+        successScore: number;
+        _sessionSuccesses?: number[];
+      }
+    >();
 
     // Initialize with caloric logs (for caloriesTrend)
     for (const log of caloricLogs) {
@@ -842,7 +856,7 @@ export class AnalyticsService {
         activeMinutes: 0,
         workoutsCount: 0,
         successScore: 0,
-        _sessionSuccesses: [] as number[],
+        _sessionSuccesses: [],
       });
     }
 
@@ -859,21 +873,21 @@ export class AnalyticsService {
           activeMinutes: 0,
           workoutsCount: 0,
           successScore: 0,
-          _sessionSuccesses: [] as number[],
+          _sessionSuccesses: [],
         };
         activityMap.set(dateKey, dayData);
       }
 
       dayData.activeMinutes += Math.round(session.activeMinutes || 0);
       dayData.workoutsCount += 1;
-      if (session.successPercent !== null) {
+      if (session.successPercent !== null && dayData._sessionSuccesses) {
         dayData._sessionSuccesses.push(session.successPercent);
       }
     }
 
     // Finalize averages and format for output
     const activities = Array.from(activityMap.values()).map((day) => {
-      if (day._sessionSuccesses.length > 0) {
+      if (day._sessionSuccesses && day._sessionSuccesses.length > 0) {
         day.successScore = Math.round(
           day._sessionSuccesses.reduce((a: number, b: number) => a + b, 0) /
             day._sessionSuccesses.length,
@@ -884,7 +898,8 @@ export class AnalyticsService {
     });
 
     // Return descending by date (newest first) as expected by the legacy frontend parser
-    return activities.sort((a, b) => b.date.localeCompare(a.date));
+    return (activities as Array<{ date: string }>).sort((a, b) =>
+      b.date.localeCompare(a.date),
+    );
   }
 }
-

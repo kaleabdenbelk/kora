@@ -5,10 +5,9 @@ import { planRouter } from "./plan";
 import { progressionRouter } from "./progression";
 
 export const appRouter = router({
-  healthCheck: publicProcedure
-    .query(() => {
-      return "OK";
-    }),
+  healthCheck: publicProcedure.query(() => {
+    return "OK";
+  }),
   onboarding: onboardingRouter,
   plan: planRouter,
   progression: progressionRouter,

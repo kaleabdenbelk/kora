@@ -1,8 +1,8 @@
+import { expo } from "@better-auth/expo";
+import { prismaAdapter } from "@better-auth/prisma-adapter";
 import prisma from "@kora/db";
 import { env } from "@kora/env/server";
 import { betterAuth } from "better-auth";
-import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { expo } from "@better-auth/expo";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {

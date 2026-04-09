@@ -70,8 +70,8 @@ export class AnalyticsController {
   /** GET /analytics/trends?metric=Tonnage&filter=Week */
   @Get("trends")
   async getTrends(
-    @Query("metric") metric = "Tonnage",
-    @Query("filter") filter = "Week",
+    @Query("metric") metric,
+    @Query("filter") filter,
     @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
@@ -106,8 +106,8 @@ export class AnalyticsController {
   /** GET /analytics/history?limit=20&offset=0 */
   @Get("history")
   async getHistory(
-    @Query("limit") limit = "20",
-    @Query("offset") offset = "0",
+    @Query("limit") limit,
+    @Query("offset") offset,
     @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
@@ -196,7 +196,10 @@ export class AnalyticsController {
 
   /** POST /analytics/:userId/recalculate-metabolic */
   @Post(":userId/recalculate-metabolic")
-  async recalculateMetabolic(@Param("userId") userId: string, @Req() req: Request) {
+  async recalculateMetabolic(
+    @Param("userId") userId: string,
+    @Req() req: Request,
+  ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
     return this.analyticsService.recalculateAndSaveMetabolicRates(userId);
@@ -216,7 +219,10 @@ export class AnalyticsController {
 
   /** GET /analytics/:userId/caloric-history */
   @Get(":userId/caloric-history")
-  async getCaloricHistory(@Param("userId") userId: string, @Req() req: Request) {
+  async getCaloricHistory(
+    @Param("userId") userId: string,
+    @Req() req: Request,
+  ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
     const logs = await this.analyticsService.getCaloricHistory(userId);

@@ -29,18 +29,16 @@ const onboardingSchema = z.object({
 });
 
 export const onboardingRouter = router({
-  get: protectedProcedure
-    .output(z.any())
-    .query(async ({ ctx }) => {
-      console.log(
-        `[ONBOARDING] Fetching onboarding for user: ${ctx.session.user.id}`,
-      );
-      const onboarding = await prisma.onboarding.findUnique({
-        where: { userId: ctx.session.user.id },
-      });
-      console.log(`[ONBOARDING] Onboarding found: ${!!onboarding}`);
-      return onboarding;
-    }),
+  get: protectedProcedure.output(z.any()).query(async ({ ctx }) => {
+    console.log(
+      `[ONBOARDING] Fetching onboarding for user: ${ctx.session.user.id}`,
+    );
+    const onboarding = await prisma.onboarding.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+    console.log(`[ONBOARDING] Onboarding found: ${!!onboarding}`);
+    return onboarding;
+  }),
 
   // Protect onboarding updates (e.g., max 10 requests per minute)
   update: rateLimitedProcedure(60000, 10, "onboarding:update", false)
