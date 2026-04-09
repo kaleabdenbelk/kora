@@ -30,10 +30,24 @@ async function main() {
   const adapter = new PrismaPg({ connectionString: databaseUrl });
   const prisma = new PrismaClient({ adapter });
 
-  const LEGACY_PATH =
-    "/home/fugitora/Projects/Kora/kora/apps/server/public/seeds/";
+  const LEGACY_PATH = path.join(
+    __dirname,
+    "../../../apps/server/public/seeds/",
+  );
 
   try {
+    // 0. Seed Staff
+    console.log("👥 Seeding initial staff...");
+    await prisma.staff.upsert({
+      where: { email: "kaleab.ugr-9777-18@aau.edu.et" },
+      update: {},
+      create: {
+        name: "Kaleab",
+        email: "kaleab.ugr-9777-18@aau.edu.et",
+        role: "ADMIN",
+      },
+    });
+
     // 1. Seed Exercises, Muscles, Equipment
     const exercisesData = JSON.parse(
       fs.readFileSync(path.join(LEGACY_PATH, "exercises.json"), "utf8"),
