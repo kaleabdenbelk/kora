@@ -1,6 +1,6 @@
 import prisma from "@kora/db";
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
 import { PlanService } from "@kora/api/services/plan.service";
 import { AnalyticsService } from "../src/analytics/analytics.service";
 
@@ -61,7 +61,7 @@ async function main() {
   try {
     await planService.generatePlan(userId);
     console.log("✅ Plan generated.");
-  } catch (e: any) {
+  } catch (_e) {
     console.warn(
       "⚠️ Plan generation failed (no match), falling back to first program...",
     );

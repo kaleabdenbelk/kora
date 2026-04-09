@@ -1,6 +1,6 @@
 import prisma from "@kora/db";
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
 import { AnalyticsService } from "../src/analytics/analytics.service";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
@@ -57,7 +57,7 @@ async function main() {
   console.log(
     "\nPersonal Records:",
     JSON.stringify(
-      prs.map((p: any) => ({
+      prs.map((p: Record<string, any>) => ({
         exercise: p.exercise?.name || "Unknown",
         weight: p.maxWeightKg,
         volume: p.maxVolume,
@@ -82,7 +82,7 @@ async function simulateSession(
 
   if (!session) return;
 
-  const planned = session.planned as any;
+  const planned = session.planned as Record<string, any>;
   const startedAt = new Date();
   const completedAt = new Date(startedAt.getTime() + 45 * 60 * 1000); // 45 mins session
 
@@ -90,9 +90,9 @@ async function simulateSession(
   for (const ex of planned.exercises) {
     const sets = ex.sets * setMult;
     const weights = Array(sets).fill(
-      Math.round((Number.parseInt(ex.intensity) || 50) * weightMult),
+      Math.round((Number.parseInt(ex.intensity, 10) || 50) * weightMult),
     );
-    const reps = Array(sets).fill(Number.parseInt(ex.reps) || 10);
+    const reps = Array(sets).fill(Number.parseInt(ex.reps, 10) || 10);
 
     await prisma.userExerciseLog.create({
       data: {

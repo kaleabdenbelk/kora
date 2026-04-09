@@ -12,7 +12,9 @@ async function verify() {
     console.table(columns);
 
     // Check for specific columns
-    const columnNames = (columns as any[]).map((c) => c.column_name);
+    const columnNames = (columns as Array<{ column_name: string }>).map(
+      (c) => c.column_name,
+    );
     const expectedColumns = [
       "isDeleted",
       "role",

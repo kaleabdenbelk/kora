@@ -1,7 +1,7 @@
 import { PlanService } from "@kora/api/services/plan.service";
 import prisma from "@kora/db";
 import { Injectable } from "@nestjs/common";
-import type { AnalyticsService } from "../analytics/analytics.service";
+import { AnalyticsService } from "../analytics/analytics.service";
 
 export interface SyncMutation {
   id: string;

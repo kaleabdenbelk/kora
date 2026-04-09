@@ -9,6 +9,7 @@ import {
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
+import type { Request } from "express";
 import { AnalyticsService } from "./analytics.service";
 
 @Controller("api/analytics")
@@ -23,7 +24,7 @@ export class AnalyticsController {
   // userId is derived from the Better Auth session token.
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async resolveUserId(req: any): Promise<string> {
+  private async resolveUserId(req: Request): Promise<string> {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id)
       throw new UnauthorizedException("Authentication required");
@@ -32,7 +33,7 @@ export class AnalyticsController {
 
   /** GET /analytics/summary?filter=Week */
   @Get("summary")
-  async getSummary(@Query("filter") filter = "Week", @Req() req: any) {
+  async getSummary(@Req() req: Request, @Query("filter") filter = "Week") {
     const userId = await this.resolveUserId(req);
     const data = await this.analyticsService.getSummary(userId, filter);
     return { success: true, data: { summary: data } };
@@ -40,7 +41,7 @@ export class AnalyticsController {
 
   /** GET /analytics/heatmap?days=180 */
   @Get("heatmap")
-  async getHeatmap(@Query("days") days = "180", @Req() req: any) {
+  async getHeatmap(@Req() req: Request, @Query("days") days = "180") {
     const userId = await this.resolveUserId(req);
     const data = await this.analyticsService.getActivityHeatmap(
       userId,
@@ -56,7 +57,7 @@ export class AnalyticsController {
 
   /** GET /analytics/muscles?filter=Month */
   @Get("muscles")
-  async getMuscles(@Query("filter") filter = "Month", @Req() req: any) {
+  async getMuscles(@Req() req: Request, @Query("filter") filter = "Month") {
     const userId = await this.resolveUserId(req);
     const days = { Day: 1, Week: 7, Month: 30, Year: 365 }[filter] ?? 30;
     const distribution = await this.analyticsService.getMuscleDistribution(
@@ -71,7 +72,7 @@ export class AnalyticsController {
   async getTrends(
     @Query("metric") metric = "Tonnage",
     @Query("filter") filter = "Week",
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
     const data = await this.analyticsService.getTrends(userId, metric, filter);
@@ -80,7 +81,7 @@ export class AnalyticsController {
 
   /** GET /analytics/streak */
   @Get("streak")
-  async getStreak(@Req() req: any) {
+  async getStreak(@Req() req: Request) {
     const userId = await this.resolveUserId(req);
     const data = await this.analyticsService.getStreakData(userId);
     return { success: true, data };
@@ -88,7 +89,7 @@ export class AnalyticsController {
 
   /** GET /analytics/last-workout */
   @Get("last-workout")
-  async getLastWorkout(@Req() req: any) {
+  async getLastWorkout(@Req() req: Request) {
     const userId = await this.resolveUserId(req);
     const workout = await this.analyticsService.getLastWorkout(userId);
     return { success: true, data: { workout } };
@@ -96,7 +97,7 @@ export class AnalyticsController {
 
   /** GET /analytics/profile-summary */
   @Get("profile-summary")
-  async getProfileSummary(@Req() req: any) {
+  async getProfileSummary(@Req() req: Request) {
     const userId = await this.resolveUserId(req);
     const data = await this.analyticsService.getProfileSummary(userId);
     return { success: true, data };
@@ -107,7 +108,7 @@ export class AnalyticsController {
   async getHistory(
     @Query("limit") limit = "20",
     @Query("offset") offset = "0",
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
     const page = Math.floor(Number(offset) / Number(limit)) + 1;
@@ -121,7 +122,7 @@ export class AnalyticsController {
 
   /** GET /analytics/personal-records */
   @Get("personal-records")
-  async getPersonalRecords(@Req() req: any) {
+  async getPersonalRecords(@Req() req: Request) {
     const userId = await this.resolveUserId(req);
     const records = await this.analyticsService.getPersonalRecords(userId);
     return { success: true, data: { records } };
@@ -129,7 +130,7 @@ export class AnalyticsController {
 
   /** GET /analytics/daily-activity */
   @Get("daily-activity")
-  async getDailyActivity(@Req() req: any) {
+  async getDailyActivity(@Req() req: Request) {
     const userId = await this.resolveUserId(req);
     const activities =
       await this.analyticsService.getVirtualDailyActivity(userId);
@@ -142,7 +143,7 @@ export class AnalyticsController {
 
   /** GET /analytics/:userId/dashboard */
   @Get(":userId/dashboard")
-  async getDashboard(@Param("userId") userId: string, @Req() req: any) {
+  async getDashboard(@Param("userId") userId: string, @Req() req: Request) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
     return this.analyticsService.getDashboardStats(userId);
@@ -151,9 +152,9 @@ export class AnalyticsController {
   /** GET /analytics/:userId/heatmap?days=365 */
   @Get(":userId/heatmap")
   async getHeatmapById(
+    @Req() req: Request,
     @Param("userId") userId: string,
     @Query("days") days?: string,
-    @Req() req?: any,
   ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
@@ -166,9 +167,9 @@ export class AnalyticsController {
   /** GET /analytics/:userId/muscle-distribution?days=30 */
   @Get(":userId/muscle-distribution")
   async getMuscleDistribution(
+    @Req() req: Request,
     @Param("userId") userId: string,
     @Query("days") days?: string,
-    @Req() req?: any,
   ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
@@ -181,9 +182,9 @@ export class AnalyticsController {
   /** GET /analytics/:userId/workout-focus?days=30 */
   @Get(":userId/workout-focus")
   async getWorkoutFocus(
+    @Req() req: Request,
     @Param("userId") userId: string,
     @Query("days") days?: string,
-    @Req() req?: any,
   ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
@@ -195,7 +196,7 @@ export class AnalyticsController {
 
   /** POST /analytics/:userId/recalculate-metabolic */
   @Post(":userId/recalculate-metabolic")
-  async recalculateMetabolic(@Param("userId") userId: string, @Req() req: any) {
+  async recalculateMetabolic(@Param("userId") userId: string, @Req() req: Request) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
     return this.analyticsService.recalculateAndSaveMetabolicRates(userId);
@@ -205,7 +206,7 @@ export class AnalyticsController {
   @Get(":userId/personal-records")
   async getPersonalRecordsById(
     @Param("userId") userId: string,
-    @Req() req: any,
+    @Req() req: Request,
   ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
@@ -215,7 +216,7 @@ export class AnalyticsController {
 
   /** GET /analytics/:userId/caloric-history */
   @Get(":userId/caloric-history")
-  async getCaloricHistory(@Param("userId") userId: string, @Req() req: any) {
+  async getCaloricHistory(@Param("userId") userId: string, @Req() req: Request) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
     const logs = await this.analyticsService.getCaloricHistory(userId);
@@ -225,10 +226,10 @@ export class AnalyticsController {
   /** GET /analytics/:userId/history?page=1&limit=10 */
   @Get(":userId/history")
   async getWorkoutHistory(
+    @Req() req: Request,
     @Param("userId") userId: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
-    @Req() req?: any,
   ) {
     const authId = await this.resolveUserId(req);
     if (authId !== userId) throw new UnauthorizedException();
