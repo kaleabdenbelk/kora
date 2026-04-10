@@ -5,7 +5,20 @@ import { PrismaClient } from "../prisma/generated/client";
 
 export { PrismaClient } from "../prisma/generated/client";
 
-const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+import pg from "pg";
+
+const { Pool } = pg;
+
+const pool = new Pool({
+  connectionString: env.DATABASE_URL,
+  ssl:
+    env.DATABASE_URL.includes("amazonaws.com") ||
+    env.DATABASE_URL.includes("heroku")
+      ? { rejectUnauthorized: false }
+      : false,
+});
+
+const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 export * from "../prisma/generated/enums";

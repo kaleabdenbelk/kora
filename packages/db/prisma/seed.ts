@@ -27,7 +27,15 @@ async function main() {
     throw new Error("DATABASE_URL is not set in environment");
   }
 
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  const { default: pg } = await import("pg");
+  const pool = new pg.Pool({
+    connectionString: databaseUrl,
+    ssl:
+      databaseUrl.includes("amazonaws.com") || databaseUrl.includes("heroku")
+        ? { rejectUnauthorized: false }
+        : false,
+  });
+  const adapter = new PrismaPg(pool as any);
   const prisma = new PrismaClient({ adapter });
 
   const LEGACY_PATH = path.join(
