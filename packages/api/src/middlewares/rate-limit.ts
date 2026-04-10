@@ -8,11 +8,22 @@ type RateLimitClient = {
 };
 
 // Initialize Redis client using the existing environment variables
-let redisClient: RateLimitClient = new Redis({
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
-  password: env.REDIS_PASSWORD || undefined,
-});
+let redisClient: RateLimitClient = env.REDIS_URL
+  ? new Redis(env.REDIS_URL, {
+      tls:
+        env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : undefined,
+    })
+  : new Redis({
+      host: env.REDIS_HOST,
+      port: env.REDIS_PORT,
+      password: env.REDIS_PASSWORD || undefined,
+      tls:
+        env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : undefined,
+    });
 
 // Test helper for injecting a mock/fake Redis client.
 export function setRateLimiterClientForTests(client: RateLimitClient) {
