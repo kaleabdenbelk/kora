@@ -33,15 +33,17 @@ import { SyncModule } from "./sync/sync.module";
           limit: 1000,
         },
       ],
-      storage: new ThrottlerStorageRedisService({
-        host: env.REDIS_HOST,
-        port: env.REDIS_PORT,
-        password: env.REDIS_PASSWORD || undefined,
-        tls:
-          env.NODE_ENV === "production"
-            ? { rejectUnauthorized: false }
-            : undefined,
-      }),
+      storage: env.REDIS_URL
+        ? new ThrottlerStorageRedisService(env.REDIS_URL)
+        : new ThrottlerStorageRedisService({
+            host: env.REDIS_HOST,
+            port: env.REDIS_PORT,
+            password: env.REDIS_PASSWORD || undefined,
+            tls:
+              env.NODE_ENV === "production"
+                ? { rejectUnauthorized: false }
+                : undefined,
+          }),
     }),
     S3TestModule,
   ],
