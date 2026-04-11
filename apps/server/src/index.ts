@@ -33,7 +33,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
   app.enableCors({
-    origin: true, // Allow all origins in dev
+    origin: (origin, callback) => {
+      const trusted = [
+        ...(env.CORS_ORIGIN?.split(",") || []),
+        "kora://",
+        "http://localhost:8081",
+      ];
+      if (!origin || trusted.includes(origin) || trusted.includes("*")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     credentials: true,
