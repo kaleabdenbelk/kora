@@ -27,19 +27,27 @@ function logAuthAudit(event: string, data: Record<string, unknown>) {
 }
 
 async function bootstrap() {
-  // Automatically seed program templates if missing
-  await ensureProgramTemplates();
-
   const app = await NestFactory.create(AppModule, { bodyParser: false });
+
+  // Automatically seed program templates if missing (moved out of sync block)
+  ensureProgramTemplates().catch((err) =>
+    console.error("[Startup] Seeding failed:", err),
+  );
 
   app.enableCors({
     origin: (origin, callback) => {
-      const trusted = [
-        ...(env.CORS_ORIGIN?.split(",") || []),
-        "kora://",
-        "http://localhost:8081",
-      ];
-      if (!origin || trusted.includes(origin) || trusted.includes("*")) {
+      const trustedOrigins = env.CORS_ORIGIN?.split(",") || [];
+      // Only allow local development origin in non-production
+      if (process.env.NODE_ENV !== "production") {
+        trustedOrigins.push("http://localhost:8081");
+      }
+      trustedOrigins.push("kora://");
+
+      if (
+        !origin ||
+        trustedOrigins.includes(origin) ||
+        trustedOrigins.includes("*")
+      ) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
