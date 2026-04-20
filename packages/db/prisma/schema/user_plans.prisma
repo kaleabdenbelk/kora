@@ -3,6 +3,9 @@ model UserPlan {
   userId    String
   programId String?
   planJson  Json?
+  name      String?
+  source    PlanSource    @default(AI_GENERATED)
+  isActive  Boolean       @default(true)
   startDate DateTime
   endDate   DateTime?
   createdAt DateTime      @default(now())
@@ -13,7 +16,13 @@ model UserPlan {
   sessions  UserSession[]
 
   @@index([userId])
+  @@index([userId, isActive])
   @@map("user_plans")
+}
+
+enum PlanSource {
+  AI_GENERATED
+  CUSTOM
 }
 
 model UserSession {

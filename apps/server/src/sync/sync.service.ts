@@ -1,7 +1,8 @@
 import { PlanService } from "@kora/api/services/plan.service";
+import { SessionService } from "@kora/api/services/session.service";
 import prisma from "@kora/db";
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { AnalyticsService } from "../analytics/analytics.service";
+import { AnalyticsService } from "@kora/api/services/analytics.service";
 
 export interface SyncMutation {
   id: string;
@@ -16,6 +17,8 @@ export interface SyncPayload {
 
 @Injectable()
 export class SyncService {
+  private sessionService = new SessionService();
+
   constructor(
     @Inject(forwardRef(() => AnalyticsService))
     private readonly analytics: AnalyticsService,
@@ -38,96 +41,7 @@ export class SyncService {
           // Process different mutation types
           if (mutation.type === "SESSION_COMPLETE") {
             const data = mutation.payload;
-
-            // Typed exercise payload with new analytics fields
-            type ExercisePayload = {
-              id?: string;
-              exerciseId: string;
-              plannedSets?: number;
-              plannedReps?: string;
-              actualSets?: number;
-              completed?: boolean;
-              weightsPerSet?: number[];
-              repsPerSet?: number[];
-              rpePerSet?: number[];
-              restTimesSeconds?: number[];
-              repDurationsSeconds?: number[][];
-              notes?: string;
-            };
-
-            const exercises: ExercisePayload[] = Array.isArray(data.exercises)
-              ? (data.exercises as ExercisePayload[])
-              : [];
-
-            await prisma.$transaction(async (tx) => {
-              // 1. Update the session with standard metadata
-              await tx.userSession.update({
-                where: { id: data.sessionId },
-                data: {
-                  completedStatus: true,
-                  completedAt: new Date(data.completedAt || new Date()),
-                  fatigue: data.fatigue,
-                  completed: data.completedData,
-                  totalDurationSeconds: data.totalDurationSeconds ?? null,
-                  activeMinutes: data.activeMinutes ?? null,
-                  // These will be refined by the analytics engine below
-                },
-              });
-
-              // 2. Upsert exercise logs
-              for (const ex of exercises) {
-                await tx.userExerciseLog.upsert({
-                  where: {
-                    id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
-                  },
-                  create: {
-                    id: ex.id || `log_${data.sessionId}_${ex.exerciseId}`,
-                    sessionId: data.sessionId,
-                    exerciseId: ex.exerciseId,
-                    plannedSets: ex.plannedSets || 0,
-                    plannedReps: ex.plannedReps || "",
-                    actualSets: ex.actualSets,
-                    completed: ex.completed ?? true,
-                    weightsPerSet: ex.weightsPerSet,
-                    repsPerSet: ex.repsPerSet,
-                    rpePerSet: ex.rpePerSet,
-                    restTimesSeconds: ex.restTimesSeconds,
-                    repDurationsSeconds: ex.repDurationsSeconds,
-                    notes: ex.notes,
-                  },
-                  update: {
-                    actualSets: ex.actualSets,
-                    completed: ex.completed ?? true,
-                    weightsPerSet: ex.weightsPerSet,
-                    repsPerSet: ex.repsPerSet,
-                    rpePerSet: ex.rpePerSet,
-                    restTimesSeconds: ex.restTimesSeconds,
-                    repDurationsSeconds: ex.repDurationsSeconds,
-                    notes: ex.notes,
-                  },
-                });
-              }
-
-              // 3. Touch the parent plan
-              const session = await tx.userSession.findUnique({
-                where: { id: data.sessionId },
-                select: { planId: true },
-              });
-              if (session?.planId) {
-                await tx.userPlan.update({
-                  where: { id: session.planId },
-                  data: { updatedAt: new Date() },
-                });
-              }
-            });
-
-            // 4. Process analytics engine (Source of Truth for PRs, Volume, etc.)
-            await this.analytics
-              .processSessionEngine(userId, data.sessionId)
-              .catch((err: unknown) =>
-                console.warn("[SyncService] Analytics engine failed:", err),
-              );
-
+            await this.sessionService.completeSession(userId, data);
             console.log(
               `[SyncService] Successfully processed SESSION_COMPLETE for session ${data.sessionId}`,
             );

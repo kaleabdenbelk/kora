@@ -4,7 +4,7 @@ import prisma from "./packages/db/src/index.ts";
 
 async function main() {
   const user = await prisma.user.findUnique({
-    where: { email: "kaleabdenbel@gmail.com" },
+    where: { email: "kaleabdenbel1921@gmail.com" },
     include: {
       userPlans: {
         orderBy: { createdAt: "desc" },
@@ -26,7 +26,7 @@ async function main() {
   const plan = user.userPlans[0];
   const sessions = plan.sessions;
 
-  let markdown = "# Workout Plan for kaleabdenbel@gmail.com\n\n";
+  let markdown = "# Workout Plan for kaleabdenbel1921@gmail.com\n\n";
 
   // Cast planJson to any to avoid type issues if it's stored as JsonValue
   const planJson = plan.planJson as any;
@@ -58,7 +58,7 @@ async function main() {
     markdown += "\n";
   }
 
-  const outPath = path.resolve("kaleabs_plan.md");
+  const outPath = path.resolve("kaleab1921s_plan.md");
   fs.writeFileSync(outPath, markdown);
   console.log(`Plan written to ${outPath}`);
 }

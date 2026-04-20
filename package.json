@@ -16,6 +16,7 @@
     "build": "turbo build",
     "heroku-postbuild": "pnpm db:generate && pnpm build",
     "check-types": "turbo check-types",
+    "seed": "turbo -F @kora/db seed",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",

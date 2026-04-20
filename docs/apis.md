@@ -76,6 +76,15 @@ Fuzzy search endpoint running directly against the Prisma `Exercise` registry fi
   - `query` (string, min 1 character)
 - **Output**: Array of formatted `Exercise` objects matching the parameter substring.
 
+### `plan.getById` [Query]
+Fetches full details for a specific plan, including all associated session instances.
+- **Input:** `{ planId: string }`
+- **Output:** `UserPlan` object with `sessions` included.
+
+### `plan.list` [Query]
+Lists all plans for the authenticated user.
+- **Output:** Array of plan objects. Now includes `planJson` (master template) by default to prevent "shallow" data issues in overviews.
+
 ---
 
 ## 5. Progression Engine
@@ -127,3 +136,75 @@ Fetches strict chronological metrics to chart timelines and daily habit matrices
 - **Method**: `GET /api/analytics/trends` | `GET /api/analytics/heatmap`
 - **Query Params**: `metric` ("Tonnage", "Time"), `days`
 - **Output**: Data matrices tailored natively for React charting libraries.
+---
+
+## 7. Workouts
+
+### `workout.save`
+Submission endpoint for completing a workout session. This procedure handles all underlying database updates and triggers the progression/analytics engine.
+- **Method**: `POST /trpc/workout.save`
+- **Access Level**: Protected
+- **Rate Limit**: Max 5 submissions per minute
+- **Input Payload**:
+  - `sessionId` (string, **Required**): The unique CUID of the session (obtained from `plan.getActive`).
+  - `completedAt` (string, ISO-8601): When the session was ended.
+  - `fatigue` (number, 1-10): Total session RPE.
+  - `totalDurationSeconds` (number): Active workout time.
+  - `activeMinutes` (number): Fractional minutes.
+  - `exercises` (Array): Detailed set logs including:
+    - `exerciseId` (string)
+    - `weightsPerSet` (number[])
+    - `repsPerSet` (number[])
+    - `rpePerSet` (number[])
+- **Output**: `{ success: true, sessionId: string }`
+
+### `plan.list`
+Retrieves all historical and current plans for the user.
+- **Method**: `GET /trpc/plan.list`
+- **Output**: Array of `UserPlan` summaries.
+
+### `plan.setActive`
+Activates a specific plan and deactivates all others.
+- **Method**: `POST /trpc/plan.setActive`
+- **Input**: `{ planId: string }`
+- **Output**: `{ success: true, activePlanId: string }`
+
+### `plan.replaceExercise`
+Swaps an exercise in future uncompleted sessions.
+- **Method**: `POST /trpc/plan.replaceExercise`
+- **Input**: 
+  - `planId` (string)
+  - `oldExerciseId` (string)
+  - `newExerciseId` (string)
+  - `scope` ("next" | "all")
+- **Output**: `{ success: true, updatedSessions: number }`
+
+### `plan.createCustom`
+Creates a brand new plan from a user-provided structure.
+- **Method**: `POST /trpc/plan.createCustom`
+- **Input**: 
+  - `name` (string)
+  - `durationWeeks?` (number)
+  - `days` (Array of objects with `dayNumber`, `name`, and `exercises` list)
+- **Output**: The new `UserPlan` object.
+
+---
+
+## 8. Exercise Discovery
+
+### `exercise.browse`
+Advanced discovery endpoint for building custom plans.
+- **Method**: `GET /trpc/exercise.browse`
+- **Input Payload**: 
+  - `query?` (string)
+  - `split?` (PUSH | PULL | LEGS | CORE | FULL_BODY)
+  - `muscleGroup?` (string)
+  - `equipment?` (string)
+  - `level?` (BEGINNER | INTERMEDIATE | ADVANCED)
+- **Output**: Detailed exercise list matching filters.
+
+### `exercise.getById`
+Retrieves full details for a single movement.
+- **Method**: `GET /trpc/exercise.getById`
+- **Input**: `{ id: string }`
+- **Output**: `Exercise` object.

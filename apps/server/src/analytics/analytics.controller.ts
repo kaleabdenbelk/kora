@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import { AnalyticsService } from "./analytics.service";
+import { AnalyticsService } from "@kora/api/services/analytics.service";
 
 @Controller("api/analytics")
 export class AnalyticsController {
@@ -70,8 +70,8 @@ export class AnalyticsController {
   /** GET /analytics/trends?metric=Tonnage&filter=Week */
   @Get("trends")
   async getTrends(
-    @Query("metric") metric,
-    @Query("filter") filter,
+    @Query("metric") metric: string,
+    @Query("filter") filter: string,
     @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
@@ -106,16 +106,19 @@ export class AnalyticsController {
   /** GET /analytics/history?limit=20&offset=0 */
   @Get("history")
   async getHistory(
-    @Query("limit") limit,
-    @Query("offset") offset,
+    @Query("limit") limit: string,
+    @Query("offset") offset: string,
     @Req() req: Request,
   ) {
     const userId = await this.resolveUserId(req);
-    const page = Math.floor(Number(offset) / Number(limit)) + 1;
+    const parsedLimit = limit ? Number(limit) : 10;
+    const parsedOffset = offset ? Number(offset) : 0;
+    const page = Math.floor(parsedOffset / parsedLimit) + 1;
+    
     const history = await this.analyticsService.getWorkoutHistory(
       userId,
       page,
-      Number(limit),
+      parsedLimit,
     );
     return { success: true, data: { history: history.sessions } };
   }

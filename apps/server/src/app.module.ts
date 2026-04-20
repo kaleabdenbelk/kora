@@ -20,17 +20,17 @@ import { SyncModule } from "./sync/sync.module";
         {
           name: "short",
           ttl: 1000,
-          limit: 3,
+          limit: 20,
         },
         {
           name: "medium",
           ttl: 60000,
-          limit: 60,
+          limit: 200,
         },
         {
           name: "long",
           ttl: 3600000,
-          limit: 1000,
+          limit: 2000,
         },
       ],
       storage: env.REDIS_URL

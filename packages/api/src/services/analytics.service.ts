@@ -1,5 +1,4 @@
 import prisma from "@kora/db";
-import { Injectable } from "@nestjs/common";
 
 const ACTIVITY_MULTIPLIERS = {
   SEDENTARY: 1.2,
@@ -14,7 +13,6 @@ export interface BmrTdeeResult {
   tdee: number;
 }
 
-@Injectable()
 export class AnalyticsService {
   /**
    * Mifflin-St Jeor BMR formula (most accurate for modern fitness apps).
@@ -80,16 +78,44 @@ export class AnalyticsService {
 
   // ── Streak Logic ────────────────────────────────────────────────────────────
 
+  /**
+   * Maps trainingDaysPerWeek → maximum allowed rest-day gap (in calendar days)
+   * between two workouts before the streak breaks.
+   *
+   * Logic: if you train N days per week, the longest legitimate gap between
+   * two successive workout days is floor((7 - N) / (N - 1)) + 1 (approx).
+   * We use explicit values for clarity and clamp to sensible bounds.
+   * Defaults to 3 days for unknown/missing values.
+   */
+  private getMaxAllowedGap(trainingDaysPerWeek: number | null | undefined): number {
+    switch (trainingDaysPerWeek) {
+      case 7: return 1;  // Daily — no rest days
+      case 6: return 2;  // 1 rest day per week
+      case 5: return 3;  // Up to 2 consecutive rest days
+      case 4: return 3;  // e.g. Mon/Tue/Thu/Fri → weekend gap
+      case 3: return 4;  // e.g. Mon/Wed/Fri → Fri to Mon is 3 days
+      case 2: return 5;  // e.g. Mon/Thu → Thu to Mon is 4 days
+      case 1: return 7;  // Once a week — full week is fine
+      default: return 3; // Fallback: forgiving 3-day grace period
+    }
+  }
+
   /** Recalculate streak after a workout session completes. */
   async updateStreak(userId: string, sessionDate: Date): Promise<void> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        currentStreak: true,
-        longestStreak: true,
-        lastWorkoutDate: true,
-      },
-    });
+    const [user, onboarding] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          currentStreak: true,
+          longestStreak: true,
+          lastWorkoutDate: true,
+        },
+      }),
+      prisma.onboarding.findUnique({
+        where: { userId },
+        select: { trainingDaysPerWeek: true },
+      }),
+    ]);
 
     if (!user) return;
 
@@ -104,18 +130,21 @@ export class AnalyticsService {
       ? Math.round((today.getTime() - last.getTime()) / dayMs)
       : null;
 
+    // How many calendar days of rest are allowed between workouts for this user's plan
+    const allowedGap = this.getMaxAllowedGap(onboarding?.trainingDaysPerWeek);
+
     let newStreak: number;
     if (diffDays === null) {
       // First ever workout
       newStreak = 1;
     } else if (diffDays === 0) {
-      // Already worked out today, no change
+      // Already worked out today — no change
       newStreak = user.currentStreak;
-    } else if (diffDays === 1) {
-      // Consecutive day!
+    } else if (diffDays <= allowedGap) {
+      // Within the allowed rest-day window — streak continues!
       newStreak = user.currentStreak + 1;
     } else {
-      // Streak broken
+      // Gap exceeded the plan's rest-day allowance — streak broken
       newStreak = 1;
     }
 
@@ -181,7 +210,7 @@ export class AnalyticsService {
 
     const logs = await prisma.userExerciseLog.findMany({
       where: {
-        session: { userId, startedAt: { gte: since } },
+        session: { userId, startedAt: { gte: since }, completedStatus: true },
         isDeleted: false,
       },
       include: {
@@ -203,10 +232,16 @@ export class AnalyticsService {
         : [];
       const volume = weights.reduce((sum, w, i) => sum + w * (reps[i] ?? 0), 0);
 
-      for (const em of log.exercise.muscles) {
+      const muscles = log.exercise.muscles;
+      const numMuscles = muscles.length;
+      if (numMuscles === 0) continue;
+
+      const volumePerMuscle = volume / numMuscles;
+
+      for (const em of muscles) {
         const muscleName = em.muscle.name;
-        muscleVolumes[muscleName] = (muscleVolumes[muscleName] ?? 0) + volume;
-        totalVolume += volume;
+        muscleVolumes[muscleName] = (muscleVolumes[muscleName] ?? 0) + volumePerMuscle;
+        totalVolume += volumePerMuscle;
       }
     }
 
@@ -262,8 +297,8 @@ export class AnalyticsService {
     const heatmap: Record<string, number> = {};
     for (const s of sessions) {
       if (!s.startedAt) continue;
-      const day = s.startedAt.toISOString().split("T").at(0) ?? ""; // "YYYY-MM-DD"
-      if (!day) continue;
+      // Use local date string instead of ISO UTC to avoid shifting days for late-night workouts
+      const day = s.startedAt.toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
       heatmap[day] = (heatmap[day] ?? 0) + 1;
     }
     return heatmap;
@@ -318,31 +353,33 @@ export class AnalyticsService {
     // 1. Compute and Persist Session Metrics (Phase 2 Success/Volume)
     const metrics = this.computeSessionMetrics(session.exercises);
 
-    // Calculate Active Minutes from logs if repDurationsSeconds exist
+    // Calculate Active Minutes from logs
     let totalActiveSeconds = 0;
     for (const log of session.exercises) {
+      // Handle potential nested arrays (repDurationsSeconds is often number[][])
       const repDurs = Array.isArray(log.repDurationsSeconds)
-        ? (log.repDurationsSeconds as number[])
+        ? (log.repDurationsSeconds as any).flat().filter((v: any) => typeof v === 'number')
         : [];
       const restDurs = Array.isArray(log.restTimesSeconds)
-        ? (log.restTimesSeconds as number[])
+        ? (log.restTimesSeconds as any).flat().filter((v: any) => typeof v === 'number')
         : [];
+      
       totalActiveSeconds +=
         repDurs.reduce((a: number, b: number) => a + b, 0) +
         restDurs.reduce((a: number, b: number) => a + b, 0);
     }
-    const activeMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
+
+    const computedActiveMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
+    const finalActiveMinutes = computedActiveMinutes > 0 
+      ? computedActiveMinutes 
+      : (session.totalDurationSeconds ? Math.round(session.totalDurationSeconds / 8.5) / 10 : 0); // Slightly more conservative fallback (approx 70% intensity)
 
     await prisma.userSession.update({
       where: { id: sessionId },
       data: {
         successPercent: metrics.successPercent,
         totalVolumeKg: metrics.totalVolumeKg,
-        activeMinutes:
-          activeMinutes ||
-          (session.totalDurationSeconds
-            ? session.totalDurationSeconds / 60
-            : 0),
+        activeMinutes: finalActiveMinutes,
       },
     });
 
@@ -380,6 +417,7 @@ export class AnalyticsService {
         take: limit,
         select: {
           id: true,
+          planId: true,
           dayNumber: true,
           week: true,
           completedAt: true,
@@ -458,9 +496,11 @@ export class AnalyticsService {
       }
 
       // Brzycki Formula for estimated 1RM: Weight * (36 / (37 - reps))
+      // Formula becomes increasingly inaccurate above 12 reps; we cap effective reps for calculation.
+      const calcReps = Math.min(sessionMaxReps, 12);
       const estimated1RM =
-        sessionMaxReps > 0 && sessionMaxReps < 37
-          ? Math.round(sessionMaxWeight * (36 / (37 - sessionMaxReps)) * 10) /
+        calcReps > 0 && calcReps < 37
+          ? Math.round(sessionMaxWeight * (36 / (37 - calcReps)) * 10) /
             10
           : sessionMaxWeight;
 
@@ -519,22 +559,32 @@ export class AnalyticsService {
     )
       return;
 
-    // MET Calculation: kcal = MET * weight_kg * duration_hrs
-    // General vigorous weight lifting is ~6.0 MET, moderate is ~3.5-5.0.
-    // We adjust based on reported fatigue (RPE).
-    const fatigueFactor = session.fatigue ? session.fatigue / 5 : 1; // 10 RPE -> 2x multiplier (unrealistic, but for scaling)
     const baseMet = 5.0;
-    const adjustedMet = baseMet * (0.8 + fatigueFactor * 0.4); // Range ~4.0 to ~8.0
-
-    const durationHrs = session.totalDurationSeconds / 3600;
-    const workoutBurn = Math.round(
-      adjustedMet * session.user.onboarding.weight * durationHrs,
-    );
 
     const date = new Date(session.completedAt || new Date());
     date.setHours(0, 0, 0, 0);
 
-    // Assume basal burn is TDEE / 24 * duration OR just use the daily proportion if we're doing daily logs
+    // To prevent double-counting during reprocessing, we recalculate the TOTAL workout burn for the entire day.
+    const allSessionsToday = await prisma.userSession.findMany({
+      where: {
+        userId,
+        completedStatus: true,
+        completedAt: {
+          gte: new Date(date),
+          lt: new Date(date.getTime() + 86_400_000),
+        },
+      },
+      include: { user: { include: { onboarding: true } } },
+    });
+
+    let totalWorkoutBurnToday = 0;
+    for (const s of allSessionsToday) {
+      const fatigueF = s.fatigue ? s.fatigue / 5 : 1;
+      const met = baseMet * (0.8 + Math.min(fatigueF, 1.25) * 0.4); // Cap fatigue multiplier to avoid hallucinations
+      const hrs = (s.totalDurationSeconds ?? 0) / 3600;
+      totalWorkoutBurnToday += Math.round(met * (s.user.onboarding?.weight ?? 70) * hrs);
+    }
+
     const dailyBmr = session.user.onboarding.bmr || 2000;
 
     await prisma.dailyCaloricLog.upsert({
@@ -543,14 +593,14 @@ export class AnalyticsService {
         userId,
         date,
         basalBurn: dailyBmr,
-        workoutBurn: workoutBurn,
-        activeBurn: workoutBurn, // For now, active burn is just workout burn
-        totalBurn: dailyBmr + workoutBurn,
+        workoutBurn: totalWorkoutBurnToday,
+        activeBurn: totalWorkoutBurnToday,
+        totalBurn: dailyBmr + totalWorkoutBurnToday,
       },
       update: {
-        workoutBurn: { increment: workoutBurn },
-        activeBurn: { increment: workoutBurn },
-        totalBurn: { increment: workoutBurn },
+        workoutBurn: totalWorkoutBurnToday,
+        activeBurn: totalWorkoutBurnToday,
+        totalBurn: dailyBmr + totalWorkoutBurnToday,
       },
     });
   }
@@ -636,12 +686,17 @@ export class AnalyticsService {
    * maps to GET /analytics/profile-summary
    */
   async getProfileSummary(userId: string) {
-    const [user, sessionCount, prList, onboarding] = await Promise.all([
+    const [user, sessionStats, prList, onboarding, uniqueExercises] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { currentStreak: true },
+        select: { currentStreak: true, longestStreak: true },
       }),
-      prisma.userSession.count({ where: { userId, completedStatus: true } }),
+      prisma.userSession.aggregate({
+        where: { userId, completedStatus: true, isDeleted: false },
+        _count: { id: true },
+        _sum: { totalDurationSeconds: true },
+        _avg: { successPercent: true },
+      }),
       prisma.personalRecord.findMany({
         where: { userId },
         include: { exercise: { select: { name: true } } },
@@ -649,6 +704,13 @@ export class AnalyticsService {
         take: 5,
       }),
       prisma.onboarding.findUnique({ where: { userId } }),
+      prisma.userExerciseLog.groupBy({
+        by: ["exerciseId"],
+        where: {
+          session: { userId, completedStatus: true, isDeleted: false },
+          isDeleted: false,
+        },
+      }),
     ]);
 
     // BMI
@@ -668,11 +730,11 @@ export class AnalyticsService {
 
     return {
       stats: {
-        totalWorkouts: sessionCount,
-        totalHours: 0, // TODO: sum totalDurationSeconds / 3600
-        totalExercises: 0,
+        totalWorkouts: sessionStats._count.id,
+        totalHours: Math.round((sessionStats._sum.totalDurationSeconds ?? 0) / 3600),
+        totalExercises: uniqueExercises.length,
         currentStreak: user?.currentStreak ?? 0,
-        consistency: 0,
+        consistency: Math.round(sessionStats._avg.successPercent ?? 0),
         bmi,
         bmiStatus,
         goalWeight: onboarding?.targetWeight ?? 0,
@@ -756,7 +818,7 @@ export class AnalyticsService {
     const days = filterDays[filter] ?? 7;
     const since = new Date(Date.now() - days * 86_400_000);
 
-    const [user, sessions] = await Promise.all([
+    const [user, sessions, caloricSummary, remainingCount] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: { currentStreak: true, onboarding: { select: { tdee: true } } },
@@ -774,6 +836,19 @@ export class AnalyticsService {
           successPercent: true,
         },
       }),
+      prisma.dailyCaloricLog.aggregate({
+        where: { userId, date: { gte: since } },
+        _sum: { activeBurn: true },
+      }),
+      prisma.userSession.count({
+        where: {
+          userId,
+          completedStatus: false,
+          isDeleted: false,
+          // For "Week/Month" filter, we check sessions that were supposed to happen
+          createdAt: { gte: since },
+        },
+      }),
     ]);
 
     const totalTonnage = sessions.reduce(
@@ -784,24 +859,21 @@ export class AnalyticsService {
       (a: number, s: any) => a + (s.totalDurationSeconds ?? 0),
       0,
     );
-    const avgSuccess =
-      sessions.length > 0
-        ? Math.round(
-            sessions.reduce(
-              (a: number, s: any) => a + (s.successPercent ?? 100),
-              0,
-            ) / sessions.length,
-          )
+    const totalWorkoutsInPeriod = sessions.length + remainingCount;
+    const progressPercent =
+      totalWorkoutsInPeriod > 0
+        ? Math.round((sessions.length / totalWorkoutsInPeriod) * 100)
         : 0;
 
     return {
       currentStreak: user?.currentStreak ?? 0,
       strikes: user?.currentStreak ?? 0,
-      progressPercent: avgSuccess,
+      progressPercent,
       totalTonnage,
-      remainingCount: 0, // TODO: target workouts for the period
-      caloriesBurned: 0, // TODO: sum from DailyCaloricLog
+      remainingCount: remainingCount,
+      caloriesBurned: Math.round(caloricSummary._sum.activeBurn ?? 0),
       totalDuration: Math.round(totalDuration / 60),
+      totalDurationSeconds: totalDuration,
       totalWorkouts: sessions.length,
     };
   }

@@ -7,6 +7,7 @@ import prisma, {
   type Gender,
   type TrainingGoal,
 } from "@kora/db";
+import { PlanService } from "@kora/api/services/plan.service";
 import { env } from "@kora/env/server";
 import { NestFactory } from "@nestjs/core";
 
@@ -62,8 +63,8 @@ async function bootstrap() {
 
   // 1. Manually add body parsing early
   const { default: express } = await import("express");
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: "5mb" }));
+  app.use(express.urlencoded({ limit: "5mb", extended: true }));
 
   // biome-ignore lint/suspicious/noExplicitAny: generic object redaction
   const redactSensitiveFields = (obj: any): any => {
@@ -214,108 +215,16 @@ async function bootstrap() {
 
       // --- Automatically map onboarding to a Program template ---
       if (onboardingCompleted) {
-        const existingPlan = await prisma.userPlan.findFirst({
-          where: { userId: session.user.id },
-        });
-
-        if (!existingPlan) {
-          console.log(
-            `[Onboarding] Searching for matching program for user ${session.user.id}`,
-          );
-
-          // 1. Find matching program selection
-          const selection = await prisma.programSelection.findUnique({
-            where: {
-              goal_level_daysPerWeek_gender: {
-                goal: onboarding.goal as TrainingGoal,
-                level: onboarding.trainingLevel as ExperienceLevel,
-                daysPerWeek: onboarding.trainingDaysPerWeek as number,
-                gender: onboarding.gender as Gender,
-              },
-            },
-          });
-
-          let programIdToUse = selection?.programId;
-
-          // Fallback if no exact match exists in the seed matrix
-          if (!programIdToUse) {
-            const anyProgram = await prisma.program.findFirst();
-            if (anyProgram) programIdToUse = anyProgram.id;
-          }
-
-          if (programIdToUse) {
-            // Fetch the full program template
-            const program = await prisma.program.findUnique({
-              where: { id: programIdToUse },
-              include: {
-                phases: {
-                  include: {
-                    workouts: {
-                      include: {
-                        exercises: {
-                          include: { exercise: true },
-                          orderBy: { order: "asc" },
-                        },
-                      },
-                      orderBy: { dayNumber: "asc" },
-                    },
-                  },
-                  orderBy: { order: "asc" },
-                },
-              },
-            });
-
-            if (program && program.phases.length > 0) {
-              const mainPhase = program.phases[0]!;
-
-              // 2. Build weeks array based on durationWeeks
-              const weeks = [];
-              for (let w = 1; w <= program.durationWeeks; w++) {
-                // Map templates to actual sessions
-                const sessions = mainPhase.workouts.map((wt: any) => {
-                  return {
-                    dayNumber: wt.dayNumber,
-                    name: wt.name,
-                    rest: false,
-                    exercises: wt.exercises.map((et: any) => ({
-                      id: et.exercise.id,
-                      exerciseId: et.exercise.id,
-                      name: et.exercise.name,
-                      gifUrl: et.exercise.gifUrl,
-                      sets: et.sets,
-                      reps: et.reps,
-                      intensity: et.intensity,
-                      restTime: et.restTime,
-                    })),
-                  };
-                });
-
-                weeks.push({
-                  weekNumber: w,
-                  sessions,
-                });
-              }
-
-              await prisma.userPlan.create({
-                data: {
-                  userId: session.user.id,
-                  programId: program.id,
-                  startDate: new Date(),
-                  planJson: {
-                    programName: program.name,
-                    weeks,
-                  },
-                },
-              });
-              console.log(
-                `[Onboarding] Successfully attached program "${program.name}" to user.`,
-              );
-            } else {
-              console.log(
-                `[Onboarding] Could not find program data for ID: ${programIdToUse}`,
-              );
-            }
-          }
+        console.log(
+          `[Onboarding] Searching for matching program and generating plan for user ${session.user.id}`,
+        );
+        
+        try {
+          const planService = new PlanService();
+          await planService.generatePlan(session.user.id);
+          console.log(`[Onboarding] Successfully generated plan for user.`);
+        } catch (err: any) {
+          console.log(`[Onboarding] Plan generation failed: ${err.message}`);
         }
       }
 
