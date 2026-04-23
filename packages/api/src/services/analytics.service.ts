@@ -207,10 +207,28 @@ export class AnalyticsService {
   /** Muscle distribution: sum volume per muscle group over a date range with percentages. */
   async getMuscleDistribution(userId: string, days = 30) {
     const since = new Date(Date.now() - days * 86_400_000);
+    console.log(`[AnalyticsService] --- Debugging Muscle Distribution ---`);
+    console.log(`[AnalyticsService] User ID: ${userId}`);
+    console.log(`[AnalyticsService] Days: ${days} (Since: ${since.toISOString()})`);
+
+    // First, check if the user has ANY sessions at all
+    const sessionCount = await prisma.userSession.count({ where: { userId } });
+    console.log(`[AnalyticsService] Total sessions for user in DB: ${sessionCount}`);
+
+    const completedSessionsInPeriod = await prisma.userSession.findMany({
+      where: {
+        userId,
+        startedAt: { gte: since },
+        completedStatus: true,
+        isDeleted: false,
+      },
+      select: { id: true, startedAt: true }
+    });
+    console.log(`[AnalyticsService] Completed sessions in period: ${completedSessionsInPeriod.length}`);
 
     const logs = await prisma.userExerciseLog.findMany({
       where: {
-        session: { userId, startedAt: { gte: since }, completedStatus: true },
+        session: { userId, startedAt: { gte: since }, completedStatus: true, isDeleted: false },
         isDeleted: false,
       },
       include: {
@@ -220,8 +238,21 @@ export class AnalyticsService {
       },
     });
 
+    console.log(`[AnalyticsService] Total exercise logs found: ${logs.length}`);
+
+    if (logs.length > 0) {
+      const firstLog = logs[0];
+      console.log(`[AnalyticsService] Sample Log - Exercise: ${firstLog.exercise.name}, Muscles: ${firstLog.exercise.muscles.length}`);
+    }
+
     const muscleVolumes: Record<string, number> = {};
     let totalVolume = 0;
+
+    const ROLE_WEIGHTS: Record<string, number> = {
+      PRIMARY: 1.0,
+      SECONDARY: 0.5,
+      STABILIZER: 0.2,
+    };
 
     for (const log of logs) {
       const weights = Array.isArray(log.weightsPerSet)
@@ -233,15 +264,27 @@ export class AnalyticsService {
       const volume = weights.reduce((sum, w, i) => sum + w * (reps[i] ?? 0), 0);
 
       const muscles = log.exercise.muscles;
-      const numMuscles = muscles.length;
-      if (numMuscles === 0) continue;
+      if (muscles.length === 0) continue;
 
-      const volumePerMuscle = volume / numMuscles;
+      // 1. Calculate sum of weights for this specific exercise
+      const emWeights = muscles.map(em => {
+        const baseWeight = ROLE_WEIGHTS[em.role] ?? 0.5;
+        const finalWeight = em.activationMultiplier !== 1.0 && em.activationMultiplier > 0
+          ? em.activationMultiplier
+          : baseWeight;
+        return { name: em.muscle.name, weight: finalWeight };
+      });
 
-      for (const em of muscles) {
-        const muscleName = em.muscle.name;
-        muscleVolumes[muscleName] = (muscleVolumes[muscleName] ?? 0) + volumePerMuscle;
-        totalVolume += volumePerMuscle;
+      const exerciseTotalWeight = emWeights.reduce((sum, item) => sum + item.weight, 0);
+
+      // 2. Allocate log volume proportional to muscle weights
+      if (exerciseTotalWeight > 0) {
+        for (const item of emWeights) {
+          const weightedVolume = (volume * item.weight) / exerciseTotalWeight;
+          
+          muscleVolumes[item.name] = (muscleVolumes[item.name] ?? 0) + weightedVolume;
+          totalVolume += weightedVolume;
+        }
       }
     }
 
@@ -255,6 +298,7 @@ export class AnalyticsService {
       };
     }
 
+    console.log(`[AnalyticsService] Weighted Muscle Distribution (${days} days):`, JSON.stringify(distribution, null, 2));
     return distribution;
   }
 
@@ -306,13 +350,16 @@ export class AnalyticsService {
 
   /** Aggregated stats for the user's analytics dashboard. */
   async getDashboardStats(userId: string) {
-    const [user, sessionCount, bodyMetrics] = await Promise.all([
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 86_400_000);
+
+    const [user, sessionCount, bodyMetrics, activityAggregation, sessionAggregation] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
           currentStreak: true,
           longestStreak: true,
           lastWorkoutDate: true,
+          createdAt: true,
           onboarding: {
             select: { bmr: true, tdee: true, activityLevel: true },
           },
@@ -323,16 +370,39 @@ export class AnalyticsService {
         where: { userId, isDeleted: false },
         orderBy: { recordedAt: "desc" },
       }),
+      prisma.dailyCaloricLog.aggregate({
+        where: { userId, date: { gte: ninetyDaysAgo } },
+        _sum: {
+          activeBurn: true,
+          workoutBurn: true,
+        },
+      }),
+      prisma.userSession.aggregate({
+        where: {
+          userId,
+          completedStatus: true,
+          completedAt: { gte: ninetyDaysAgo },
+        },
+        _sum: {
+          totalDurationSeconds: true,
+        },
+      }),
     ]);
+
+    const totalActiveBurn = (activityAggregation._sum?.activeBurn || 0) + (activityAggregation._sum?.workoutBurn || 0);
+    const totalMinutes = Math.round((sessionAggregation._sum?.totalDurationSeconds || 0) / 60);
 
     return {
       currentStreak: user?.currentStreak ?? 0,
       longestStreak: user?.longestStreak ?? 0,
       lastWorkoutDate: user?.lastWorkoutDate ?? null,
+      createdAt: user?.createdAt ?? null,
       totalWorkouts: sessionCount,
       bmr: user?.onboarding?.bmr ?? null,
       tdee: user?.onboarding?.tdee ?? null,
       latestBodyMetrics: bodyMetrics ?? null,
+      ninetyDayCalories: Math.round(totalActiveBurn),
+      ninetyDayMinutes: totalMinutes,
     };
   }
 
@@ -370,9 +440,13 @@ export class AnalyticsService {
     }
 
     const computedActiveMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
-    const finalActiveMinutes = computedActiveMinutes > 0 
-      ? computedActiveMinutes 
-      : (session.totalDurationSeconds ? Math.round(session.totalDurationSeconds / 8.5) / 10 : 0); // Slightly more conservative fallback (approx 70% intensity)
+    
+    // Fallback: If no logs exist, estimate active time as 70% of total duration (assuming high intensity)
+    const finalActiveMinutes = computedActiveMinutes > 0
+      ? computedActiveMinutes
+      : session.totalDurationSeconds
+        ? Math.round((session.totalDurationSeconds * 0.7) / 6) / 10
+        : 0;
 
     await prisma.userSession.update({
       where: { id: sessionId },
@@ -821,7 +895,11 @@ export class AnalyticsService {
     const [user, sessions, caloricSummary, remainingCount] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { currentStreak: true, onboarding: { select: { tdee: true } } },
+        select: { 
+          currentStreak: true, 
+          createdAt: true,
+          onboarding: { select: { tdee: true } } 
+        },
       }),
       prisma.userSession.findMany({
         where: {
@@ -845,8 +923,11 @@ export class AnalyticsService {
           userId,
           completedStatus: false,
           isDeleted: false,
-          // For "Week/Month" filter, we check sessions that were supposed to happen
-          createdAt: { gte: since },
+          // If the session was started but not finished, it counts toward this period's remaining work
+          OR: [
+            { startedAt: { gte: since } },
+            { createdAt: { gte: since } }, // Fallback for newly generated but unstarted sessions
+          ],
         },
       }),
     ]);
@@ -875,6 +956,7 @@ export class AnalyticsService {
       totalDuration: Math.round(totalDuration / 60),
       totalDurationSeconds: totalDuration,
       totalWorkouts: sessions.length,
+      createdAt: user?.createdAt ?? null,
     };
   }
 
@@ -921,7 +1003,7 @@ export class AnalyticsService {
 
     // Initialize with caloric logs (for caloriesTrend)
     for (const log of caloricLogs) {
-      const dateKey = log.date.toISOString().split("T")[0]!;
+      const dateKey = log.date.toLocaleDateString("en-CA");
       activityMap.set(dateKey, {
         date: dateKey,
         caloriesBurned: log.workoutBurn || 0, // Maps to Home screen caloriesTrend
@@ -935,7 +1017,7 @@ export class AnalyticsService {
     // Aggregate sessions (for time, count, and progress trends)
     for (const session of sessions) {
       if (!session.completedAt) continue;
-      const dateKey = session.completedAt.toISOString().split("T")[0]!;
+      const dateKey = session.completedAt.toLocaleDateString("en-CA");
 
       let dayData = activityMap.get(dateKey);
       if (!dayData) {

@@ -15,10 +15,12 @@ model User {
   bodyMetrics     BodyMetrics[]
   caloricLogs     DailyCaloricLog[]
   onboarding      Onboarding?
+  settings        UserSettings?
   personalRecords PersonalRecord[]
   sessions        Session[]
   userPlans       UserPlan[]
   userSessions    UserSession[]
+  savedExercises  Exercise[]        @relation("UserSavedExercises")
 
   @@map("user")
 }

@@ -29,6 +29,7 @@ model Exercise {
   movementPattern   MovementPattern?    @relation(fields: [movementPatternId], references: [id])
   personalRecords   PersonalRecord[]
   userExerciseLogs  UserExerciseLog[]
+  savedByUsers      User[]              @relation("UserSavedExercises")
 
   @@map("exercises")
 }

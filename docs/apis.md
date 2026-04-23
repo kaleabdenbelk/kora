@@ -208,3 +208,21 @@ Retrieves full details for a single movement.
 - **Method**: `GET /trpc/exercise.getById`
 - **Input**: `{ id: string }`
 - **Output**: `Exercise` object.
+
+### `exercise.toggleSave`
+Toggles the saved/bookmarked status of an exercise for the current user.
+- **Method**: `POST /trpc/exercise.toggleSave`
+- **Input**: `{ exerciseId: string, save: boolean }`
+- **Output**: Updated `User` object highlighting successful mutation.
+
+### `exercise.getSaved`
+Retrieves the list of saved exercises for the authenticated user.
+- **Method**: `GET /trpc/exercise.getSaved`
+- **Input**: None
+- **Output**: Array of formatted `Exercise` objects.
+
+### `exercise.isSaved`
+Checks if a specific exercise is present in the user's saved list.
+- **Method**: `GET /trpc/exercise.isSaved`
+- **Input**: `{ exerciseId: string }`
+- **Output**: `boolean` indicating saved state.

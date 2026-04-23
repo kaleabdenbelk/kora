@@ -129,4 +129,50 @@ export const exerciseRouter = router({
       if (!exercise) throw new Error("Exercise not found");
       return exercise;
     }),
+
+  // ── Saved Exercises ────────────────────────────────────────────────────────
+  toggleSave: protectedProcedure
+    .input(z.object({ exerciseId: z.string(), save: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { exerciseId, save } = input;
+      const userId = ctx.session.user.id;
+
+      if (save) {
+        return prisma.user.update({
+          where: { id: userId },
+          data: { savedExercises: { connect: { id: exerciseId } } },
+        });
+      } else {
+        return prisma.user.update({
+          where: { id: userId },
+          data: { savedExercises: { disconnect: { id: exerciseId } } },
+        });
+      }
+    }),
+
+  getSaved: protectedProcedure
+    .query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { savedExercises: { where: { isDeleted: false } } },
+      });
+      return user?.savedExercises || [];
+    }),
+
+  isSaved: protectedProcedure
+    .input(z.object({ exerciseId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          savedExercises: {
+            where: { id: input.exerciseId },
+            select: { id: true }
+          }
+        }
+      });
+      return (user?.savedExercises?.length ?? 0) > 0;
+    }),
 });
