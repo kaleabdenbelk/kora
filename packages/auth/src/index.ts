@@ -3,6 +3,7 @@ import { prismaAdapter } from "@better-auth/prisma-adapter";
 import prisma from "@kora/db";
 import { env } from "@kora/env/server";
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -31,5 +32,5 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
-  plugins: [expo()],
+  plugins: [expo(), bearer()],
 });
