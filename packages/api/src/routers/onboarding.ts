@@ -94,6 +94,12 @@ export const onboardingRouter = router({
         );
       }
 
+      // Call metabolic recalculation to populate BMR/TDEE
+      const analyticsService = new (await import("../services/analytics.service")).AnalyticsService();
+      await analyticsService.recalculateAndSaveMetabolicRates(ctx.session.user.id).catch(e => {
+        console.warn(`[ONBOARDING] Metabolic recalculation failed: ${e.message}`);
+      });
+
       return onboarding;
     }),
 });

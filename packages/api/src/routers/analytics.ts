@@ -32,14 +32,13 @@ export const analyticsRouter = router({
       z.object({
         page: z.number().default(1),
         limit: z.number().default(10),
+        status: z.enum(['Completed', 'Modified', 'Skipped', 'All']).optional(),
+        dateRange: z.enum(['Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days', 'All']).optional(),
+        workoutType: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getWorkoutHistory(
-        ctx.session.user.id,
-        input.page,
-        input.limit,
-      );
+      return await analyticsService.getWorkoutHistory(ctx.session.user.id, input);
     }),
 
   getPersonalRecords: protectedProcedure.query(async ({ ctx }) => {
@@ -75,5 +74,16 @@ export const analyticsRouter = router({
         input.metric,
         input.filter,
       );
+    }),
+
+  getSummary: protectedProcedure
+    .input(
+      z.object({ 
+        filter: z.string(),
+        localDate: z.string().optional()
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await analyticsService.getSummary(ctx.session.user.id, input.filter, input.localDate);
     }),
 });
