@@ -1,4 +1,6 @@
 import "reflect-metadata";
+import cluster from "node:cluster";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PlanService } from "@kora/api/services/plan.service";
@@ -26,11 +28,6 @@ function logAuthAudit(event: string, data: Record<string, unknown>) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
-
-  // Automatically seed program templates if missing (moved out of sync block)
-  ensureProgramTemplates().catch((err) =>
-    console.error("[Startup] Seeding failed:", err),
-  );
 
   app.enableCors({
     origin: (
@@ -297,5 +294,40 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`Server is running on http://localhost:${port}`);
 }
+if (process.env.NODE_ENV === "production" && cluster.isPrimary) {
+  console.log(`Primary process ${process.pid} is running`);
 
-bootstrap();
+  ensureProgramTemplates()
+    .then(() => {
+      const workers =
+        parseInt(process.env.WEB_CONCURRENCY || "", 10) ||
+        os.cpus().length ||
+        1;
+      console.log(`Forking ${workers} workers...`);
+
+      for (let i = 0; i < workers; i++) {
+        cluster.fork();
+      }
+
+      cluster.on("exit", (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died. Restarting...`);
+        cluster.fork();
+      });
+    })
+    .catch((err) => {
+      console.error("[Startup] Primary seed failed:", err);
+      process.exit(1);
+    });
+} else {
+  // Run seed here only if we are not a worker (i.e. dev mode)
+  if (!cluster.isWorker) {
+    ensureProgramTemplates().catch((err) =>
+      console.error("[Startup] Seeding failed:", err),
+    );
+  }
+
+  bootstrap().catch((err) => {
+    console.error("Error during bootstrap:", err);
+    process.exit(1);
+  });
+}
