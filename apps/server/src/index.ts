@@ -55,7 +55,7 @@ async function bootstrap() {
       }
     },
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "expo-origin"],
     credentials: true,
   });
 
@@ -84,19 +84,21 @@ async function bootstrap() {
     return newObj;
   };
 
-  // 2. Debug Logger (after body parsing)
+      // 2. Debug Logger (after body parsing)
   app.use(
     (
       req: { method: string; url: string; body: unknown },
       _res: unknown,
       next: () => void,
     ) => {
-      if (req.method === "POST" && req.url.includes("/trpc/")) {
+      if (req.url.includes("/trpc/")) {
         console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-        console.log(
-          "[REQ BODY]",
-          JSON.stringify(redactSensitiveFields(req.body)),
-        );
+        if (req.method === "POST") {
+          console.log(
+            "[REQ BODY]",
+            JSON.stringify(redactSensitiveFields(req.body)),
+          );
+        }
       }
       next();
     },
