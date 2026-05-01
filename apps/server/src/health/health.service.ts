@@ -33,12 +33,24 @@ export class HealthService implements OnModuleInit {
   }
 
   private async checkRedis() {
-    const redis = new Redis({
-      host: env.REDIS_HOST,
-      port: env.REDIS_PORT,
-      password: env.REDIS_PASSWORD || undefined,
-      lazyConnect: true,
-    });
+    const redis = env.REDIS_URL
+      ? new Redis(env.REDIS_URL, {
+          lazyConnect: true,
+          tls:
+            env.NODE_ENV === "production"
+              ? { rejectUnauthorized: false }
+              : undefined,
+        })
+      : new Redis({
+          host: env.REDIS_HOST,
+          port: env.REDIS_PORT,
+          password: env.REDIS_PASSWORD || undefined,
+          lazyConnect: true,
+          tls:
+            env.NODE_ENV === "production"
+              ? { rejectUnauthorized: false }
+              : undefined,
+        });
 
     try {
       await redis.connect();

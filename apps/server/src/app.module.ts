@@ -1,3 +1,4 @@
+import { Redis } from "ioredis";
 import { env } from "@kora/env/server";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Module } from "@nestjs/common";
@@ -34,16 +35,25 @@ import { SyncModule } from "./sync/sync.module";
         },
       ],
       storage: env.REDIS_URL
-        ? new ThrottlerStorageRedisService(env.REDIS_URL)
-        : new ThrottlerStorageRedisService({
-            host: env.REDIS_HOST,
-            port: env.REDIS_PORT,
-            password: env.REDIS_PASSWORD || undefined,
-            tls:
-              env.NODE_ENV === "production"
-                ? { rejectUnauthorized: false }
-                : undefined,
-          }),
+        ? new ThrottlerStorageRedisService(
+            new Redis(env.REDIS_URL, {
+              tls:
+                env.NODE_ENV === "production"
+                  ? { rejectUnauthorized: false }
+                  : undefined,
+            }),
+          )
+        : new ThrottlerStorageRedisService(
+            new Redis({
+              host: env.REDIS_HOST,
+              port: env.REDIS_PORT,
+              password: env.REDIS_PASSWORD || undefined,
+              tls:
+                env.NODE_ENV === "production"
+                  ? { rejectUnauthorized: false }
+                  : undefined,
+            }),
+          ),
     }),
     S3TestModule,
   ],
