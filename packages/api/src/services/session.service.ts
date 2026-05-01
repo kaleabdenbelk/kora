@@ -23,7 +23,7 @@ export type CompleteSessionData = {
   week?: number;
   completedAt?: string;
   fatigue?: number;
-  completedData?: any;
+  completedData?: unknown;
   totalDurationSeconds?: number;
   activeMinutes?: number;
   exercises: ExercisePayload[];
@@ -47,12 +47,13 @@ export class SessionService {
           week: data.week || 1,
           planned: {
             name: "Completed Workout",
-            exercises: []
+            exercises: [],
           },
           completedStatus: true,
           completedAt: new Date(data.completedAt || new Date()),
           fatigue: data.fatigue,
-          completed: data.completedData || {},
+          // biome-ignore lint/suspicious/noExplicitAny: prisma json field
+          completed: (data.completedData as any) || {},
           totalDurationSeconds: data.totalDurationSeconds ?? null,
           activeMinutes: data.activeMinutes ?? null,
         },
@@ -60,7 +61,8 @@ export class SessionService {
           completedStatus: true,
           completedAt: new Date(data.completedAt || new Date()),
           fatigue: data.fatigue,
-          completed: data.completedData,
+          // biome-ignore lint/suspicious/noExplicitAny: prisma json field
+          completed: data.completedData as any,
           totalDurationSeconds: data.totalDurationSeconds ?? null,
           activeMinutes: data.activeMinutes ?? null,
         },

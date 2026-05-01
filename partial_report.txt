@@ -1,0 +1,294 @@
+packages/api/src/security/auth-phase4.test.ts:68:23 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    66 │         path: "auth.login",
+    67 │         next,
+  > 68 │       } as unknown as any),
+       │                       ^^^
+    69 │     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
+    70 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/security/auth-phase4.test.ts:88:23 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    86 │         path: "auth.login",
+    87 │         next,
+  > 88 │       } as unknown as any),
+       │                       ^^^
+    89 │     ).resolves.toEqual({ ok: true });
+    90 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/security/auth-phase4.test.ts:107:23 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    105 │         path: "auth.login",
+    106 │         next: vi.fn(),
+  > 107 │       } as unknown as any),
+        │                       ^^^
+    108 │     ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
+    109 │   });
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/services/plan.service.ts:54:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    52 │           level: profile.trainingLevel,
+    53 │           daysPerWeek: profile.trainingDaysPerWeek,
+  > 54 │           gender: profile.gender!,
+       │                   ^^^^^^^^^^^^^^^
+    55 │         },
+    56 │       },
+  
+
+packages/api/src/services/plan.service.ts:81:20 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    79 │       endDate.setDate(startDate.getDate() + program.durationWeeks * 7);
+    80 │ 
+  > 81 │       const weeks: any[] = [];
+       │                    ^^^
+    82 │       let jsonCurrentWeek = 1;
+    83 │       for (const phase of program.phases) {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/services/plan.service.ts:118:26 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    116 │       });
+    117 │ 
+  > 118 │       const sessionData: any[] = [];
+        │                          ^^^
+    119 │       let currentWeek = 1;
+    120 │       for (const phase of program.phases) {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/services/plan.service.ts:198:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    196 │         rest: false,
+    197 │         exercises: day.exercises.map((ex) => {
+  > 198 │           const meta = exerciseMap.get(ex.exerciseId)!;
+        │                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    199 │           return {
+    200 │             exerciseId: ex.exerciseId,
+  
+
+packages/api/src/services/plan.service.ts:276:28 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    274 │         });
+    275 │ 
+  > 276 │         const newSessions: any[] = [];
+        │                            ^^^
+    277 │ 
+    278 │         for (let w = 1; w <= durationWeeks; w++) {
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/services/plan.service.ts:286:30 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    284 │               name: day.name,
+    285 │               exercises: day.exercises.map((ex) => {
+  > 286 │                 const meta = exerciseMap.get(ex.exerciseId)!;
+        │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    287 │                 return {
+    288 │                   exerciseId: ex.exerciseId,
+  
+
+packages/api/src/services/plan.service.ts:352:32 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    350 │                 name: day.name,
+    351 │                 exercises: day.exercises.map((ex) => {
+  > 352 │                   const meta = exerciseMap.get(ex.exerciseId)!;
+        │                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    353 │                   return {
+    354 │                     exerciseId: ex.exerciseId,
+  
+
+packages/api/src/services/plan.service.ts:416:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    414 │         name: dayUpdate.name,
+    415 │         exercises: dayUpdate.exercises.map((ex) => {
+  > 416 │           const meta = exerciseMap.get(ex.exerciseId)!;
+        │                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    417 │           return {
+    418 │             exerciseId: ex.exerciseId,
+  
+
+packages/api/src/test-persistence.ts:22:10 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    20 │     name: "Bloat Test Plan",
+    21 │     days: largeDays,
+  > 22 │   })) as any;
+       │          ^^^
+    23 │ 
+    24 │   console.log("✅ Plan creation call returned.");
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/test-persistence.ts:50:10 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    48 │     name: "Bloat Test Plan",
+    49 │     days: updatedDays,
+  > 50 │   })) as any;
+       │          ^^^
+    51 │ 
+    52 │   if (!updatedPlan) throw new Error("Plan update failed");
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/test-persistence.ts:55:9 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    54 │   const firstSession = updatedPlan.sessions.find(
+  > 55 │     (s: any) => s.dayNumber === 1 && s.week === 1,
+       │         ^^^
+    56 │   );
+    57 │   if (!firstSession) throw new Error("Session not found");
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/test-persistence.ts:59:41 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    57 │   if (!firstSession) throw new Error("Session not found");
+    58 │ 
+  > 59 │   const sets = (firstSession.planned as any).exercises[0].sets;
+       │                                         ^^^
+    60 │   console.log(`🧐 Day 1 Sets in DB: ${sets} (Expected 5)`);
+    61 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/test-surgical-update.ts:40:73 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    39 │   console.log(
+  > 40 │     `✅ Plan created. ID: ${initialPlan.id}. Sessions: ${(initialPlan as any).sessions?.length || "fetching..."}`,
+       │                                                                          ^^^
+    41 │   );
+    42 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/test-surgical-update.ts:103:30 lint/suspicious/noExplicitAny ━━━━━━━━━━
+
+  ! Unexpected any. Specify a different type.
+  
+    101 │   );
+    102 │   const isSurgical =
+  > 103 │     (day1Session?.planned as any).name === "Modified Upper Body";
+        │                              ^^^
+    104 │   console.log(`✨ Day 1 session updated surgically: ${isSurgical}`);
+    105 │ 
+  
+  i any disables many type checking rules. Its use should be avoided.
+  
+
+packages/api/src/security/auth-phase4.test.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { TRPCError } from "@trpc/server";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { describe, expect, it, vi } from "vitest";
+    3 │ 
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1   1 │   import { TRPCError } from "@trpc/server";
+      2   2 │   import { describe, expect, it, vi } from "vitest";
+      3     │ - 
+      4     │ - import·{·protectedProcedure,·requireRole,·router·}·from·"../index";
+      5     │ - import·{
+      6     │ - ··createRateLimiter,
+      7     │ - ··setRateLimiterClientForTests,
+      8     │ - }·from·"../middlewares/rate-limit";
+      9     │ - import·type·{·Context·}·from·"../context";
+          3 │ + import·type·{·Context·}·from·"../context";
+          4 │ + import·{·protectedProcedure,·requireRole,·router·}·from·"../index";
+          5 │ + import·{
+          6 │ + ··createRateLimiter,
+          7 │ + ··setRateLimiterClientForTests,
+          8 │ + }·from·"../middlewares/rate-limit";
+     10   9 │   
+     11  10 │   describe("Phase 4 auth security", () => {
+  
+
+packages/api/src/security/auth-phase4.test.ts format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     15  15 │       });
+     16  16 │   
+     17     │ - ····const·caller·=·appRouter.createCaller({·session:·null·}·as·unknown·as·Context);
+         17 │ + ····const·caller·=·appRouter.createCaller({
+         18 │ + ······session:·null,
+         19 │ + ····}·as·unknown·as·Context);
+     18  20 │   
+     19  21 │       await expect(caller.me()).rejects.toBeInstanceOf(TRPCError);
+  
+
+packages/api/src/services/plan.service.ts:224:11 lint/suspicious/noImplicitAnyLet ━━━━━━━━━━
+
+  × This variable implicitly has the any type.
+  
+    222 │       }
+    223 │ 
+  > 224 │       let userPlan;
+        │           ^^^^^^^^
+    225 │ 
+    226 │       if (finalId) {
+  
+  i Variable declarations without type annotation and initialization implicitly have the any type. Declare a type or initialize the variable with some value.
+  
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 49.
+Checked 71 files in 112ms. No fixes applied.
+Found 26 errors.
+Found 43 warnings.
+check ━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

@@ -6,11 +6,11 @@ async function check() {
     where: { email },
     include: {
       userSessions: {
-        orderBy: { completedAt: 'desc' },
+        orderBy: { completedAt: "desc" },
         take: 1,
-        include: { exercises: true }
-      }
-    }
+        include: { exercises: true },
+      },
+    },
   });
 
   if (!user || !user.userSessions[0]) {
@@ -25,11 +25,15 @@ async function check() {
   console.log("- Total Volume:", s.totalVolumeKg);
   console.log("- Active Minutes:", s.activeMinutes);
   console.log("- CompletedAt:", s.completedAt);
-  
+
   console.log("\nEXERCISES:");
   s.exercises.forEach((ex, i) => {
-    console.log(`[${i}] ${ex.exerciseId}: weight: ${JSON.stringify(ex.weightsPerSet)}, reps: ${JSON.stringify(ex.repsPerSet)}`);
+    console.log(
+      `[${i}] ${ex.exerciseId}: weight: ${JSON.stringify(ex.weightsPerSet)}, reps: ${JSON.stringify(ex.repsPerSet)}`,
+    );
   });
 }
 
-check().catch(console.error).finally(() => prisma.$disconnect());
+check()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

@@ -58,22 +58,25 @@ async function main() {
 
     const uniqueExercises = Array.from(exerciseMap.keys());
 
-    console.log(`User Info:`);
+    console.log("User Info:");
     console.log(`- Name: ${user.name}`);
     console.log(`- Current Streak: ${user.currentStreak} days`);
     console.log(`- Longest Streak: ${user.longestStreak} days`);
-    console.log(`- Last Workout: ${user.lastWorkoutDate ? user.lastWorkoutDate.toDateString() : "Never"}`);
-    console.log(``);
-    console.log(`Workout Stats:`);
+    console.log(
+      `- Last Workout: ${user.lastWorkoutDate ? user.lastWorkoutDate.toDateString() : "Never"}`,
+    );
+    console.log("");
+    console.log("Workout Stats:");
     console.log(`- Total Completed Workouts: ${totalWorkouts}`);
-    console.log(`- Total Active Time: ${formatDuration(totalDurationSeconds)} (${(totalDurationSeconds / 3600).toFixed(2)} hours)`);
+    console.log(
+      `- Total Active Time: ${formatDuration(totalDurationSeconds)} (${(totalDurationSeconds / 3600).toFixed(2)} hours)`,
+    );
     console.log(`- Total Volume Lifted: ${totalVolume.toLocaleString()} kg`);
-    console.log(``);
+    console.log("");
     console.log(`Exercises Performed (${uniqueExercises.length}):`);
     uniqueExercises.sort().forEach((ex) => {
       console.log(`- ${ex} (${exerciseMap.get(ex)} sessions)`);
     });
-
   } catch (error) {
     console.error("Error fetching user stats:", error);
   } finally {

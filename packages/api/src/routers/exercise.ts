@@ -37,14 +37,10 @@ export const exerciseRouter = router({
   browse: protectedProcedure
     .input(
       z.object({
-        split: z
-          .enum(["PUSH", "PULL", "LEGS", "CORE", "FULL_BODY"])
-          .optional(),
+        split: z.enum(["PUSH", "PULL", "LEGS", "CORE", "FULL_BODY"]).optional(),
         muscleGroup: z.string().optional(), // partial muscle name, e.g. "Chest"
-        equipment: z.string().optional(),   // partial equipment name, e.g. "Dumbbell"
-        level: z
-          .enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"])
-          .optional(),
+        equipment: z.string().optional(), // partial equipment name, e.g. "Dumbbell"
+        level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
         query: z.string().optional(),
         limit: z.number().int().min(1).max(100).optional().default(30),
         offset: z.number().int().min(0).optional().default(0),
@@ -60,9 +56,7 @@ export const exerciseRouter = router({
           isDeleted: false,
           ...(split ? { split } : {}),
           ...(level ? { level } : {}),
-          ...(query
-            ? { name: { contains: query, mode: "insensitive" } }
-            : {}),
+          ...(query ? { name: { contains: query, mode: "insensitive" } } : {}),
           ...(muscleGroup
             ? {
                 muscles: {
@@ -142,23 +136,21 @@ export const exerciseRouter = router({
           where: { id: userId },
           data: { savedExercises: { connect: { id: exerciseId } } },
         });
-      } else {
-        return prisma.user.update({
-          where: { id: userId },
-          data: { savedExercises: { disconnect: { id: exerciseId } } },
-        });
       }
+      return prisma.user.update({
+        where: { id: userId },
+        data: { savedExercises: { disconnect: { id: exerciseId } } },
+      });
     }),
 
-  getSaved: protectedProcedure
-    .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { savedExercises: { where: { isDeleted: false } } },
-      });
-      return user?.savedExercises || [];
-    }),
+  getSaved: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { savedExercises: { where: { isDeleted: false } } },
+    });
+    return user?.savedExercises || [];
+  }),
 
   isSaved: protectedProcedure
     .input(z.object({ exerciseId: z.string() }))
@@ -169,9 +161,9 @@ export const exerciseRouter = router({
         include: {
           savedExercises: {
             where: { id: input.exerciseId },
-            select: { id: true }
-          }
-        }
+            select: { id: true },
+          },
+        },
       });
       return (user?.savedExercises?.length ?? 0) > 0;
     }),

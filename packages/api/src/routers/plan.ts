@@ -9,15 +9,17 @@ const planService = new PlanService();
 const customPlanDaySchema = z.object({
   dayNumber: z.number().int().min(1),
   name: z.string().min(1).max(80),
-  exercises: z.array(
-    z.object({
-      exerciseId: z.string(),
-      sets: z.number().int().min(1).max(20),
-      reps: z.string().min(1), // e.g. "8-12", "AMRAP", "30s"
-      restTime: z.number().int().optional(),
-      intensity: z.string().optional(),
-    }),
-  ).min(1),
+  exercises: z
+    .array(
+      z.object({
+        exerciseId: z.string(),
+        sets: z.number().int().min(1).max(20),
+        reps: z.string().min(1), // e.g. "8-12", "AMRAP", "30s"
+        restTime: z.number().int().optional(),
+        intensity: z.string().optional(),
+      }),
+    )
+    .min(1),
 });
 
 // ─── Router ───────────────────────────────────────────────────────────────────
@@ -46,21 +48,16 @@ export const planRouter = router({
     }),
 
   // ── List all plans (for "My Plans" screen) ─────────────────────────────────
-  list: protectedProcedure
-    .output(z.any())
-    .query(async ({ ctx }) => {
-      return await planService.listPlans(ctx.session.user.id);
-    }),
+  list: protectedProcedure.output(z.any()).query(async ({ ctx }) => {
+    return await planService.listPlans(ctx.session.user.id);
+  }),
 
   // ── Switch active plan ─────────────────────────────────────────────────────
   setActive: protectedProcedure
     .input(z.object({ planId: z.string() }))
     .output(z.any())
     .mutation(async ({ ctx, input }) => {
-      return await planService.setActivePlan(
-        ctx.session.user.id,
-        input.planId,
-      );
+      return await planService.setActivePlan(ctx.session.user.id, input.planId);
     }),
 
   // ── Replace an exercise in future sessions ─────────────────────────────────

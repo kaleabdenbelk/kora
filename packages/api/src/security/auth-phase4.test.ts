@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { describe, expect, it, vi } from "vitest";
 
+import type { Context } from "../context";
 import { protectedProcedure, requireRole, router } from "../index";
 import {
   createRateLimiter,
@@ -13,7 +14,9 @@ describe("Phase 4 auth security", () => {
       me: protectedProcedure.query(({ ctx }) => ctx.session.user.id),
     });
 
-    const caller = appRouter.createCaller({ session: null } as any);
+    const caller = appRouter.createCaller({
+      session: null,
+    } as unknown as Context);
 
     await expect(caller.me()).rejects.toBeInstanceOf(TRPCError);
     await expect(caller.me()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
@@ -28,7 +31,7 @@ describe("Phase 4 auth security", () => {
       session: {
         user: { id: "u-1", role: "user" },
       },
-    } as any);
+    } as unknown as Context);
 
     await expect(caller.adminOnly()).rejects.toBeInstanceOf(TRPCError);
     await expect(caller.adminOnly()).rejects.toMatchObject({
@@ -45,7 +48,7 @@ describe("Phase 4 auth security", () => {
       session: {
         user: { id: "u-1", role: "admin" },
       },
-    } as any);
+    } as unknown as Context);
 
     await expect(caller.adminOnly()).resolves.toBe("ok");
   });
@@ -64,7 +67,7 @@ describe("Phase 4 auth security", () => {
         ctx: { session: { user: { id: "u-1" } } },
         path: "auth.login",
         next,
-      } as any),
+      } as unknown as any), // Still need any here because Middleware context is complex
     ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
 
     expect(next).not.toHaveBeenCalled();
@@ -84,7 +87,7 @@ describe("Phase 4 auth security", () => {
         ctx: { session: { user: { id: "u-1" } } },
         path: "auth.login",
         next,
-      } as any),
+      } as unknown as any),
     ).resolves.toEqual({ ok: true });
 
     expect(next).toHaveBeenCalledTimes(1);
@@ -103,7 +106,7 @@ describe("Phase 4 auth security", () => {
         ctx: { session: { user: { id: "u-1" } } },
         path: "auth.login",
         next: vi.fn(),
-      } as any),
+      } as unknown as any),
     ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
   });
 });

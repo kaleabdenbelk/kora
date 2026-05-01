@@ -1,5 +1,5 @@
-import prisma from "../packages/db/src/index";
 import { AnalyticsService } from "../packages/api/src/services/analytics.service";
+import prisma from "../packages/db/src/index";
 
 async function checkSummary() {
   const email = "westen2114@gmail.com";
@@ -17,9 +17,16 @@ async function checkSummary() {
   console.log("\n--- Checking raw sessions for this user ---");
   const sessions = await prisma.userSession.findMany({
     where: { userId: user.id },
-    select: { id: true, completedStatus: true, completedAt: true, totalVolumeKg: true }
+    select: {
+      id: true,
+      completedStatus: true,
+      completedAt: true,
+      totalVolumeKg: true,
+    },
   });
   console.log(JSON.stringify(sessions, null, 2));
 }
 
-checkSummary().catch(console.error).finally(() => prisma.$disconnect());
+checkSummary()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

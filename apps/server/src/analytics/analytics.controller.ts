@@ -1,3 +1,4 @@
+import { AnalyticsService } from "@kora/api/services/analytics.service";
 import { auth } from "@kora/auth";
 import {
   Controller,
@@ -10,7 +11,6 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import { AnalyticsService } from "@kora/api/services/analytics.service";
 
 @Controller("api/analytics")
 export class AnalyticsController {
@@ -114,7 +114,7 @@ export class AnalyticsController {
     const parsedLimit = limit ? Number(limit) : 10;
     const parsedOffset = offset ? Number(offset) : 0;
     const page = Math.floor(parsedOffset / parsedLimit) + 1;
-    
+
     const history = await this.analyticsService.getWorkoutHistory(
       userId,
       page,

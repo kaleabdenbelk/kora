@@ -1,5 +1,5 @@
-import prisma from './index';
-import { AnalyticsService } from '../../api/src/services/analytics.service';
+import { AnalyticsService } from "../../api/src/services/analytics.service";
+import prisma from "./index";
 
 async function repairUserAnalytics(email: string) {
   const user = await prisma.user.findUnique({
@@ -12,7 +12,7 @@ async function repairUserAnalytics(email: string) {
   }
 
   console.log(`\n🛠️  Repairing Analytics for: ${email} (${user.id})`);
-  
+
   const analytics = new AnalyticsService();
 
   // 1. Fetch all completed sessions
@@ -20,15 +20,17 @@ async function repairUserAnalytics(email: string) {
     where: {
       userId: user.id,
       completedStatus: true,
-      isDeleted: false
+      isDeleted: false,
     },
-    orderBy: { completedAt: 'asc' }
+    orderBy: { completedAt: "asc" },
   });
 
   console.log(`📡 Found ${sessions.length} sessions to re-process...`);
 
   for (const session of sessions) {
-    console.log(`   🔸 Processing Session: ${session.id} (${session.completedAt?.toISOString()})`);
+    console.log(
+      `   🔸 Processing Session: ${session.id} (${session.completedAt?.toISOString()})`,
+    );
     try {
       await analytics.processSessionEngine(user.id, session.id);
     } catch (err) {
@@ -36,10 +38,10 @@ async function repairUserAnalytics(email: string) {
     }
   }
 
-  console.log(`\n✅ Repair Complete.`);
+  console.log("\n✅ Repair Complete.");
 }
 
-const email = process.argv[2] || 'kaleabdenbel1921@gmail.com';
+const email = process.argv[2] || "kaleabdenbel1921@gmail.com";
 repairUserAnalytics(email)
   .catch(console.error)
   .finally(() => prisma.$disconnect());

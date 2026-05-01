@@ -5,10 +5,14 @@ async function createMockSession() {
 
   try {
     const TARGET_USER_ID = "0GFAoOd4be3UEZHuW324531V3eGX0V9f";
-    const user = await prisma.user.findUnique({ where: { id: TARGET_USER_ID } });
-    
+    const user = await prisma.user.findUnique({
+      where: { id: TARGET_USER_ID },
+    });
+
     if (!user) {
-      console.error(`❌ User with ID ${TARGET_USER_ID} not found. Ensure you are signed in.`);
+      console.error(
+        `❌ User with ID ${TARGET_USER_ID} not found. Ensure you are signed in.`,
+      );
       return;
     }
     console.log(`👤 Found User: ${user.name || user.email} (ID: ${user.id})`);
@@ -75,11 +79,12 @@ async function createMockSession() {
     });
 
     console.log(`✅ SUCCESS: Created mock session ${session.id}`);
-    console.log("📈 Now go to your analytics/dashboard and you should see real distribution percentages!");
+    console.log(
+      "📈 Now go to your analytics/dashboard and you should see real distribution percentages!",
+    );
   } catch (error) {
     console.error("❌ Error creating mock session:", error);
   }
 }
 
-createMockSession()
-  .finally(() => prisma.$disconnect());
+createMockSession().finally(() => prisma.$disconnect());

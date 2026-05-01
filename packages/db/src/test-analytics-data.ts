@@ -9,7 +9,7 @@ import prisma from "./index";
 const USER_ID = "0GFAoOd4be3UEZHuW324531V3eGX0V9f";
 
 function section(title: string) {
-  console.log("\n" + "═".repeat(50));
+  console.log(`\n${"═".repeat(50)}`);
   console.log(`  ${title}`);
   console.log("═".repeat(50));
 }
@@ -41,9 +41,13 @@ async function checkHeatmap() {
     heatmap[date] = (heatmap[date] ?? 0) + 1;
   }
 
-  console.log(`✅ Found ${sessions.length} sessions across ${Object.keys(heatmap).length} unique days:`);
+  console.log(
+    `✅ Found ${sessions.length} sessions across ${Object.keys(heatmap).length} unique days:`,
+  );
   Object.entries(heatmap).forEach(([date, count]) => {
-    console.log(`   ${date}: ${"🟦".repeat(count)} (${count} session${count > 1 ? "s" : ""})`);
+    console.log(
+      `   ${date}: ${"🟦".repeat(count)} (${count} session${count > 1 ? "s" : ""})`,
+    );
   });
 }
 
@@ -69,7 +73,11 @@ async function checkTime() {
 
   console.log(`✅ Found ${sessions.length} sessions:`);
   sessions.forEach((s) => {
-    const date = s.completedAt?.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    const date = s.completedAt?.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
     const hours = s.totalDurationSeconds
       ? (Math.round(s.totalDurationSeconds / 360) / 10).toFixed(1)
       : "0.0";
@@ -79,8 +87,13 @@ async function checkTime() {
     console.log(`   ${date}: ${hours}h (${minutes} min)`);
   });
 
-  const totalSeconds = sessions.reduce((a, s) => a + (s.totalDurationSeconds ?? 0), 0);
-  console.log(`\n   Total: ${Math.round(totalSeconds / 60)} min (${(totalSeconds / 3600).toFixed(1)}h)`);
+  const totalSeconds = sessions.reduce(
+    (a, s) => a + (s.totalDurationSeconds ?? 0),
+    0,
+  );
+  console.log(
+    `\n   Total: ${Math.round(totalSeconds / 60)} min (${(totalSeconds / 3600).toFixed(1)}h)`,
+  );
 }
 
 async function checkCalories() {
@@ -94,15 +107,25 @@ async function checkCalories() {
 
   if (logs.length === 0) {
     console.log("⚠️  No caloric logs found.");
-    console.log("   → These are created when a session is completed via calculateCaloricBurn().");
-    console.log("   → Make sure onboarding data (weight, height, age) is present.");
+    console.log(
+      "   → These are created when a session is completed via calculateCaloricBurn().",
+    );
+    console.log(
+      "   → Make sure onboarding data (weight, height, age) is present.",
+    );
     return;
   }
 
   console.log(`✅ Found ${logs.length} caloric log entries:`);
   logs.forEach((l) => {
-    const date = l.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    console.log(`   ${date}: ${Math.round(l.workoutBurn)} kcal workout burn | ${Math.round(l.basalBurn)} kcal BMR | Total: ${Math.round(l.totalBurn)} kcal`);
+    const date = l.date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    console.log(
+      `   ${date}: ${Math.round(l.workoutBurn)} kcal workout burn | ${Math.round(l.basalBurn)} kcal BMR | Total: ${Math.round(l.totalBurn)} kcal`,
+    );
   });
 
   const totalWorkoutBurn = logs.reduce((a, l) => a + l.workoutBurn, 0);
@@ -131,24 +154,37 @@ async function checkTonnage() {
 
   console.log(`✅ Found ${sessions.length} sessions:`);
   sessions.forEach((s) => {
-    const date = s.completedAt?.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    const vol = s.totalVolumeKg != null ? `${s.totalVolumeKg.toFixed(1)} kg` : "⚠️ null (not set)";
+    const date = s.completedAt?.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    const vol =
+      s.totalVolumeKg != null
+        ? `${s.totalVolumeKg.toFixed(1)} kg`
+        : "⚠️ null (not set)";
     console.log(`   ${date}: ${vol}`);
   });
 
   const totalTonnage = sessions.reduce((a, s) => a + (s.totalVolumeKg ?? 0), 0);
   console.log(`\n   Total Tonnage: ${totalTonnage.toFixed(1)} kg`);
-  console.log(`   Sessions with null volume: ${sessions.filter(s => s.totalVolumeKg == null).length}`);
+  console.log(
+    `   Sessions with null volume: ${sessions.filter((s) => s.totalVolumeKg == null).length}`,
+  );
 }
 
 async function checkOnboarding() {
   section("0. USER ONBOARDING CHECK");
-  const onboarding = await prisma.onboarding.findUnique({ where: { userId: USER_ID } });
+  const onboarding = await prisma.onboarding.findUnique({
+    where: { userId: USER_ID },
+  });
   if (!onboarding) {
-    console.log("❌ No onboarding record found! Caloric burn calculations will fail.");
+    console.log(
+      "❌ No onboarding record found! Caloric burn calculations will fail.",
+    );
     return;
   }
-  console.log(`✅ Onboarding found:`);
+  console.log("✅ Onboarding found:");
   console.log(`   Gender: ${onboarding.gender ?? "❌ null"}`);
   console.log(`   Weight: ${onboarding.weight ?? "❌ null"} kg`);
   console.log(`   Height: ${onboarding.height ?? "❌ null"} cm`);
@@ -157,7 +193,9 @@ async function checkOnboarding() {
   console.log(`   TDEE:   ${onboarding.tdee ?? "❌ null"} kcal/day`);
 
   if (!onboarding.bmr || !onboarding.tdee) {
-    console.log("\n💡 TIP: Run 'pnpm dlx tsx -e \"import { AnalyticsService } from './packages/api/src/services/analytics.service'; new AnalyticsService().recalculateAndSaveMetabolicRates('${USER_ID}')\"' to fix BMR/TDEE.");
+    console.log(
+      "\n💡 TIP: Run 'pnpm dlx tsx -e \"import { AnalyticsService } from './packages/api/src/services/analytics.service'; new AnalyticsService().recalculateAndSaveMetabolicRates('${USER_ID}')\"' to fix BMR/TDEE.",
+    );
   }
 }
 

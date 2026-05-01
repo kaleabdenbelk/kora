@@ -1,4 +1,5 @@
 import prisma from "@kora/db";
+import type { UserPlan } from "@kora/db";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,37 @@ export interface CreateCustomPlanInput {
 
 export type ReplaceScope = "next" | "all";
 
+interface ExerciseInPlan {
+  exerciseId: string;
+  name: string;
+  gifUrl: string | null;
+  sets: number;
+  reps: string;
+  intensity?: string | null;
+  restTime?: number | null;
+  [key: string]: unknown;
+}
+
+interface SessionInPlan {
+  dayNumber: number;
+  name: string;
+  rest?: boolean;
+  exercises: ExerciseInPlan[];
+  [key: string]: unknown;
+}
+
+interface WeekInPlan {
+  weekNumber: number;
+  sessions: SessionInPlan[];
+  [key: string]: unknown;
+}
+
+interface PlanJsonStructure {
+  programName: string;
+  weeks: WeekInPlan[];
+  [key: string]: unknown;
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export class PlanService {
@@ -31,7 +63,12 @@ export class PlanService {
   // ---------------------------------------------------------------------------
   async generatePlan(userId: string) {
     const profile = await prisma.onboarding.findUnique({ where: { userId } });
-    if (!profile || !profile.goal || !profile.trainingLevel || !profile.trainingDaysPerWeek) {
+    if (
+      !profile ||
+      !profile.goal ||
+      !profile.trainingLevel ||
+      !profile.trainingDaysPerWeek
+    ) {
       throw new Error("Onboarding incomplete");
     }
 
@@ -46,7 +83,7 @@ export class PlanService {
           goal: profile.goal,
           level: profile.trainingLevel,
           daysPerWeek: profile.trainingDaysPerWeek,
-          gender: profile.gender!,
+          gender: profile.gender ?? "MALE",
         },
       },
       include: {
@@ -73,12 +110,12 @@ export class PlanService {
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + program.durationWeeks * 7);
 
-      const weeks: any[] = [];
+      const weeks: WeekInPlan[] = [];
       let jsonCurrentWeek = 1;
       for (const phase of program.phases) {
         for (let w = 0; w < phase.durationWeeks; w++) {
           const weekNumber = jsonCurrentWeek + w;
-          const sessions = phase.workouts.map((wt) => ({
+          const sessions: SessionInPlan[] = phase.workouts.map((wt) => ({
             dayNumber: wt.dayNumber,
             name: wt.name,
             rest: false,
@@ -106,11 +143,20 @@ export class PlanService {
           isActive: true,
           startDate,
           endDate,
-          planJson: { programName: program.name, weeks },
+          planJson: {
+            programName: program.name,
+            weeks: weeks as any,
+          } as any,
         },
       });
 
-      const sessionData: any[] = [];
+      const sessionData: {
+        userId: string;
+        planId: string;
+        dayNumber: number;
+        week: number;
+        planned: SessionInPlan;
+      }[] = [];
       let currentWeek = 1;
       for (const phase of program.phases) {
         for (let w = 0; w < phase.durationWeeks; w++) {
@@ -122,9 +168,10 @@ export class PlanService {
               dayNumber: wt.dayNumber,
               week: weekNumber,
               planned: {
+                dayNumber: wt.dayNumber,
                 name: wt.name,
-                exercises: wt.exercises.map((et) => ({
-                  exerciseId: et.exerciseId,
+                exercises: wt.exercises.map((et): ExerciseInPlan => ({
+                  exerciseId: et.exercise.id,
                   name: et.exercise.name,
                   gifUrl: et.exercise.gifUrl || null,
                   sets: et.sets,
@@ -139,7 +186,7 @@ export class PlanService {
         currentWeek += phase.durationWeeks;
       }
 
-      await tx.userSession.createMany({ data: sessionData });
+      await tx.userSession.createMany({ data: sessionData as any });
       return userPlan;
     });
   }
@@ -159,14 +206,22 @@ export class PlanService {
 
     const isFullPlan = deduplicatedDays.length > 28;
     const durationWeeks = isFullPlan ? 1 : (input.durationWeeks ?? 8);
-    
+
     // Safety check: Total sessions should not exceed a reasonable limit (e.g. 500)
     const totalSessions = deduplicatedDays.length * durationWeeks;
     if (totalSessions > 600) {
-      throw new Error(`Plan too large: ${totalSessions} sessions requested. Maximum is 600.`);
+      throw new Error(
+        `Plan too large: ${totalSessions} sessions requested. Maximum is 600.`,
+      );
     }
 
-    const exerciseIds = [...new Set(deduplicatedDays.flatMap((d) => d.exercises.map((e) => e.exerciseId)))];
+    const exerciseIds = [
+      ...new Set(
+        deduplicatedDays.flatMap((d: CustomPlanDay) =>
+          d.exercises.map((e) => e.exerciseId),
+        ),
+      ),
+    ];
     const found = await prisma.exercise.findMany({
       where: { id: { in: exerciseIds }, isDeleted: false },
       select: { id: true, name: true, gifUrl: true },
@@ -174,7 +229,8 @@ export class PlanService {
     const exerciseMap = new Map(found.map((e) => [e.id, e]));
 
     const missing = exerciseIds.filter((id) => !exerciseMap.has(id));
-    if (missing.length > 0) throw new Error(`Unknown exercise IDs: ${missing.join(", ")}`);
+    if (missing.length > 0)
+      throw new Error(`Unknown exercise IDs: ${missing.join(", ")}`);
 
     const weeksTemplate = Array.from({ length: durationWeeks }, (_, i) => ({
       weekNumber: i + 1,
@@ -182,8 +238,10 @@ export class PlanService {
         dayNumber: day.dayNumber,
         name: day.name,
         rest: false,
-        exercises: day.exercises.map((ex) => {
-          const meta = exerciseMap.get(ex.exerciseId)!;
+        exercises: day.exercises.map((ex): ExerciseInPlan => {
+                const meta = exerciseMap.get(ex.exerciseId);
+                if (!meta)
+                  throw new Error(`Exercise ${ex.exerciseId} meta missing`);
           return {
             exerciseId: ex.exerciseId,
             name: meta.name,
@@ -209,7 +267,7 @@ export class PlanService {
         if (existingByName) finalId = existingByName.id;
       }
 
-      let userPlan;
+      let userPlan: UserPlan | null = null;
 
       if (finalId) {
         userPlan = await tx.userPlan.findUnique({ where: { id: finalId } });
@@ -230,7 +288,10 @@ export class PlanService {
             name: input.name,
             isActive: true,
             endDate,
-            planJson: { programName: input.name, weeks: weeksTemplate },
+            planJson: {
+              programName: input.name,
+              weeks: weeksTemplate as any,
+            },
           },
         });
 
@@ -242,31 +303,45 @@ export class PlanService {
 
         console.log(`[PlanService] Updating existing plan ${finalId}`);
 
-        const sessionMap = new Map(currentSessions.map((s) => [`${s.week}-${s.dayNumber}`, s]));
+        const sessionMap = new Map(
+          currentSessions.map((s) => [`${s.week}-${s.dayNumber}`, s]),
+        );
 
         // 2. Clear sessions that are outside the new template range
         const maxDay = Math.max(...deduplicatedDays.map((d) => d.dayNumber));
         await tx.userSession.updateMany({
           where: {
             planId: finalId,
-            OR: [{ week: { gt: durationWeeks } }, { dayNumber: { gt: maxDay } }],
+            OR: [
+              { week: { gt: durationWeeks } },
+              { dayNumber: { gt: maxDay } },
+            ],
             completedStatus: false,
             startedAt: null,
           },
           data: { isDeleted: true },
         });
 
-        const newSessions: any[] = [];
+        const newSessions: {
+          userId: string;
+          planId: string;
+          dayNumber: number;
+          week: number;
+          planned: SessionInPlan;
+        }[] = [];
 
         for (let w = 1; w <= durationWeeks; w++) {
           for (const day of deduplicatedDays) {
             const key = `${w}-${day.dayNumber}`;
             const existing = sessionMap.get(key);
 
-            const sessionStructure = {
+            const sessionStructure: SessionInPlan = {
+              dayNumber: day.dayNumber,
               name: day.name,
-              exercises: day.exercises.map((ex) => {
-                const meta = exerciseMap.get(ex.exerciseId)!;
+              exercises: day.exercises.map((ex): ExerciseInPlan => {
+                const meta = exerciseMap.get(ex.exerciseId);
+                if (!meta)
+                  throw new Error(`Exercise ${ex.exerciseId} meta missing`);
                 return {
                   exerciseId: ex.exerciseId,
                   name: meta.name,
@@ -282,7 +357,10 @@ export class PlanService {
             if (existing) {
               await tx.userSession.update({
                 where: { id: existing.id },
-                data: { planned: sessionStructure, isDeleted: false },
+                data: {
+                  planned: sessionStructure as any,
+                  isDeleted: false,
+                },
               });
             } else {
               newSessions.push({
@@ -297,10 +375,13 @@ export class PlanService {
         }
 
         if (newSessions.length > 0) {
-          await tx.userSession.createMany({ data: newSessions });
+          await tx.userSession.createMany({ data: newSessions as any });
         }
       } else {
-        await tx.userPlan.updateMany({ where: { userId, isActive: true }, data: { isActive: false } });
+        await tx.userPlan.updateMany({
+          where: { userId, isActive: true },
+          data: { isActive: false },
+        });
 
         const startDate = new Date();
         const endDate = new Date(startDate);
@@ -314,8 +395,11 @@ export class PlanService {
             isActive: true,
             startDate,
             endDate,
-            planJson: { programName: input.name, weeks: weeksTemplate },
-          },
+            planJson: {
+              programName: input.name,
+              weeks: weeksTemplate as any,
+            },
+          } as any,
         });
 
         const sessionData = [];
@@ -327,9 +411,12 @@ export class PlanService {
               dayNumber: day.dayNumber,
               week: w,
               planned: {
+                dayNumber: day.dayNumber,
                 name: day.name,
-                exercises: day.exercises.map((ex) => {
-                  const meta = exerciseMap.get(ex.exerciseId)!;
+                exercises: day.exercises.map((ex): ExerciseInPlan => {
+                  const meta = exerciseMap.get(ex.exerciseId);
+                  if (!meta)
+                    throw new Error(`Exercise ${ex.exerciseId} meta missing`);
                   return {
                     exerciseId: ex.exerciseId,
                     name: meta.name,
@@ -344,13 +431,17 @@ export class PlanService {
             });
           }
         }
-        console.log(`[PlanService] Created new sessions: ${sessionData.length}`);
-        await tx.userSession.createMany({ data: sessionData });
+        console.log(
+          `[PlanService] Created new sessions: ${sessionData.length}`,
+        );
+        await tx.userSession.createMany({ data: sessionData as any });
       }
 
-      console.log(`[PlanService] Plan ${userPlan!.id} ready. Returning enriched data...`);
+      console.log(
+        `[PlanService] Plan ${userPlan?.id} ready. Returning enriched data...`,
+      );
       return await tx.userPlan.findUnique({
-        where: { id: userPlan!.id },
+        where: { id: userPlan?.id },
         include: {
           sessions: {
             where: { isDeleted: false },
@@ -362,7 +453,12 @@ export class PlanService {
   }
 
   // ---------------------------------------------------------------------------
-  async updateDayTemplate(userId: string, planId: string, dayNumber: number, dayUpdate: CustomPlanDay) {
+  async updateDayTemplate(
+    userId: string,
+    planId: string,
+    dayNumber: number,
+    dayUpdate: CustomPlanDay,
+  ) {
     return await prisma.$transaction(async (tx) => {
       const plan = await tx.userPlan.findFirst({
         where: { id: planId, userId, isDeleted: false },
@@ -378,12 +474,14 @@ export class PlanService {
       const exerciseMap = new Map(found.map((e) => [e.id, e]));
 
       const missing = exerciseIds.filter((id) => !exerciseMap.has(id));
-      if (missing.length > 0) throw new Error(`Unknown exercise IDs: ${missing.join(", ")}`);
+      if (missing.length > 0)
+        throw new Error(`Unknown exercise IDs: ${missing.join(", ")}`);
 
       const sessionStructure = {
         name: dayUpdate.name,
-        exercises: dayUpdate.exercises.map((ex) => {
-          const meta = exerciseMap.get(ex.exerciseId)!;
+        exercises: dayUpdate.exercises.map((ex): ExerciseInPlan => {
+          const meta = exerciseMap.get(ex.exerciseId);
+          if (!meta) throw new Error(`Exercise ${ex.exerciseId} meta missing`);
           return {
             exerciseId: ex.exerciseId,
             name: meta.name,
@@ -397,11 +495,11 @@ export class PlanService {
       };
 
       // 2. Update Master Plan Template (planJson)
-      const planJson = plan.planJson as any;
+      const planJson = plan.planJson as unknown as PlanJsonStructure;
       if (planJson?.weeks) {
-        const updatedWeeks = planJson.weeks.map((week: any) => ({
+        const updatedWeeks = planJson.weeks.map((week) => ({
           ...week,
-          sessions: week.sessions.map((sess: any) => {
+          sessions: week.sessions.map((sess) => {
             if (sess.dayNumber !== dayNumber) return sess;
             return {
               ...sess,
@@ -414,9 +512,9 @@ export class PlanService {
         // Auto-activate the plan
         await tx.userPlan.update({
           where: { id: planId },
-          data: { 
-            planJson: { ...planJson, weeks: updatedWeeks },
-            isActive: true 
+          data: {
+            planJson: { ...(planJson as any), weeks: updatedWeeks as any },
+            isActive: true,
           },
         });
 
@@ -428,7 +526,7 @@ export class PlanService {
       }
 
       // 3. Update all future uncompleted sessions for this day
-      const updatedCount = await tx.userSession.updateMany({
+      await tx.userSession.updateMany({
         where: {
           planId,
           userId,
@@ -438,7 +536,7 @@ export class PlanService {
           isDeleted: false,
         },
         data: {
-          planned: sessionStructure,
+          planned: sessionStructure as any,
         },
       });
 
@@ -458,7 +556,13 @@ export class PlanService {
   // ---------------------------------------------------------------------------
   // replaceExercise — syncs instances AND master template
   // ---------------------------------------------------------------------------
-  async replaceExercise(userId: string, planId: string, oldExerciseId: string, newExerciseId: string, scope: ReplaceScope = "all") {
+  async replaceExercise(
+    userId: string,
+    planId: string,
+    oldExerciseId: string,
+    newExerciseId: string,
+    scope: ReplaceScope = "all",
+  ) {
     const plan = await prisma.userPlan.findFirst({
       where: { id: planId, userId, isDeleted: false },
     });
@@ -471,43 +575,67 @@ export class PlanService {
     if (!newExercise) throw new Error("Exercise not found");
 
     const futureSessions = await prisma.userSession.findMany({
-      where: { planId, userId, completedStatus: false, startedAt: null, isDeleted: false },
+      where: {
+        planId,
+        userId,
+        completedStatus: false,
+        startedAt: null,
+        isDeleted: false,
+      },
       orderBy: [{ week: "asc" }, { dayNumber: "asc" }],
     });
 
-    const toUpdate = scope === "next" ? futureSessions.slice(0, 1) : futureSessions;
+    const toUpdate =
+      scope === "next" ? futureSessions.slice(0, 1) : futureSessions;
 
     let updatedCount = 0;
     for (const session of toUpdate) {
-      const planned = session.planned as any;
+      const planned = session.planned as unknown as SessionInPlan;
       if (!planned?.exercises) continue;
 
-      const updatedExercises = planned.exercises.map((ex: any) => {
+      const updatedExercises = planned.exercises.map((ex: ExerciseInPlan) => {
         if (ex.exerciseId !== oldExerciseId) return ex;
-        return { ...ex, exerciseId: newExercise.id, name: newExercise.name, gifUrl: newExercise.gifUrl || null };
+        return {
+          ...ex,
+          exerciseId: newExercise.id,
+          name: newExercise.name,
+          gifUrl: newExercise.gifUrl || null,
+        };
       });
 
       await prisma.userSession.update({
         where: { id: session.id },
-        data: { planned: { ...planned, exercises: updatedExercises } },
+        data: {
+          planned: { ...(planned as any), exercises: updatedExercises as any },
+        },
       });
       updatedCount++;
     }
 
     if (updatedCount > 0) {
-      const planJson = plan.planJson as any;
+      const planJson = plan.planJson as unknown as PlanJsonStructure;
       if (planJson?.weeks) {
-        const updatedWeeks = planJson.weeks.map((week: any) => ({
+        const updatedWeeks = planJson.weeks.map((week) => ({
           ...week,
-          sessions: week.sessions.map((sess: any) => ({
+          sessions: week.sessions.map((sess) => ({
             ...sess,
-            exercises: sess.exercises.map((ex: any) => {
+            exercises: sess.exercises.map((ex: ExerciseInPlan) => {
               if (ex.exerciseId !== oldExerciseId) return ex;
-              return { ...ex, exerciseId: newExercise.id, name: newExercise.name, gifUrl: newExercise.gifUrl || null };
+              return {
+                ...ex,
+                exerciseId: newExercise.id,
+                name: newExercise.name,
+                gifUrl: newExercise.gifUrl || null,
+              };
             }),
           })),
         }));
-        await prisma.userPlan.update({ where: { id: planId }, data: { planJson: { ...planJson, weeks: updatedWeeks } } });
+        await prisma.userPlan.update({
+          where: { id: planId },
+          data: {
+            planJson: { ...(planJson as any), weeks: updatedWeeks as any },
+          },
+        });
       }
     }
 
@@ -559,12 +687,20 @@ export class PlanService {
   }
 
   async setActivePlan(userId: string, planId: string) {
-    const target = await prisma.userPlan.findFirst({ where: { id: planId, userId, isDeleted: false } });
+    const target = await prisma.userPlan.findFirst({
+      where: { id: planId, userId, isDeleted: false },
+    });
     if (!target) throw new Error("Plan not found");
 
     await prisma.$transaction([
-      prisma.userPlan.updateMany({ where: { userId, isActive: true }, data: { isActive: false } }),
-      prisma.userPlan.update({ where: { id: planId }, data: { isActive: true } }),
+      prisma.userPlan.updateMany({
+        where: { userId, isActive: true },
+        data: { isActive: false },
+      }),
+      prisma.userPlan.update({
+        where: { id: planId },
+        data: { isActive: true },
+      }),
     ]);
 
     return { success: true, activePlanId: planId };

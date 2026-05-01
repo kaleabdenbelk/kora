@@ -73,7 +73,17 @@ export async function ensureProgramTemplates() {
               durationWeeks: 6,
               workouts: {
                 create: plan.week_1.map(
-                  (w: { name: string; day: number; exercises: any[] }) => ({
+                  (w: {
+                    name: string;
+                    day: number;
+                    exercises: Array<{
+                      id: string | number;
+                      sets: number;
+                      reps: string | number;
+                      weight?: number;
+                      rest?: number;
+                    }>;
+                  }) => ({
                     name: w.name,
                     dayNumber: w.day,
                     exercises: {

@@ -28,11 +28,13 @@ async function cleanup() {
   console.log(`Found ${suspicious.length} suspicious plans.`);
 
   for (const plan of suspicious) {
-    console.log(`Cleaning plan: ${plan.name} (ID: ${plan.id}) with ${plan._count.sessions} sessions...`);
+    console.log(
+      `Cleaning plan: ${plan.name} (ID: ${plan.id}) with ${plan._count.sessions} sessions...`,
+    );
 
-    // We'll keep only the first occurrence of each (week, dayNumber) to be safe, 
+    // We'll keep only the first occurrence of each (week, dayNumber) to be safe,
     // or better yet, since it's a custom plan that exploded, we'll keep the first cycle.
-    
+
     const allSessions = await prisma.userSession.findMany({
       where: { planId: plan.id, isDeleted: false },
       orderBy: [{ week: "asc" }, { dayNumber: "asc" }, { createdAt: "asc" }],
@@ -51,7 +53,9 @@ async function cleanup() {
     }
 
     if (toDelete.length > 0) {
-      console.log(`Deleting ${toDelete.length} redundant sessions for plan ${plan.id}...`);
+      console.log(
+        `Deleting ${toDelete.length} redundant sessions for plan ${plan.id}...`,
+      );
       await prisma.userSession.deleteMany({
         where: { id: { in: toDelete } },
       });

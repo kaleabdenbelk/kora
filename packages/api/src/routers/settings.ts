@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { router, protectedProcedure } from '../index';
-import prisma from '@kora/db';
+import prisma from "@kora/db";
+import { z } from "zod";
+import { protectedProcedure, router } from "../index";
 
 export const settingsRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
@@ -20,7 +20,7 @@ export const settingsRouter = router({
         muteAll: false,
         reminderHour: 6,
         reminderMinute: 30,
-        reminderPeriod: 'AM' as const,
+        reminderPeriod: "AM" as const,
       };
     }
 
@@ -39,8 +39,8 @@ export const settingsRouter = router({
         muteAll: z.boolean().optional(),
         reminderHour: z.number().min(1).max(12).optional(),
         reminderMinute: z.number().min(0).max(59).optional(),
-        reminderPeriod: z.enum(['AM', 'PM']).optional(),
-      })
+        reminderPeriod: z.enum(["AM", "PM"]).optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userSettings = await prisma.userSettings.upsert({

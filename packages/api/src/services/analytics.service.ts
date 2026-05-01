@@ -87,16 +87,26 @@ export class AnalyticsService {
    * We use explicit values for clarity and clamp to sensible bounds.
    * Defaults to 3 days for unknown/missing values.
    */
-  private getMaxAllowedGap(trainingDaysPerWeek: number | null | undefined): number {
+  private getMaxAllowedGap(
+    trainingDaysPerWeek: number | null | undefined,
+  ): number {
     switch (trainingDaysPerWeek) {
-      case 7: return 1;  // Daily — no rest days
-      case 6: return 2;  // 1 rest day per week
-      case 5: return 3;  // Up to 2 consecutive rest days
-      case 4: return 3;  // e.g. Mon/Tue/Thu/Fri → weekend gap
-      case 3: return 4;  // e.g. Mon/Wed/Fri → Fri to Mon is 3 days
-      case 2: return 5;  // e.g. Mon/Thu → Thu to Mon is 4 days
-      case 1: return 7;  // Once a week — full week is fine
-      default: return 3; // Fallback: forgiving 3-day grace period
+      case 7:
+        return 1; // Daily — no rest days
+      case 6:
+        return 2; // 1 rest day per week
+      case 5:
+        return 3; // Up to 2 consecutive rest days
+      case 4:
+        return 3; // e.g. Mon/Tue/Thu/Fri → weekend gap
+      case 3:
+        return 4; // e.g. Mon/Wed/Fri → Fri to Mon is 3 days
+      case 2:
+        return 5; // e.g. Mon/Thu → Thu to Mon is 4 days
+      case 1:
+        return 7; // Once a week — full week is fine
+      default:
+        return 3; // Fallback: forgiving 3-day grace period
     }
   }
 
@@ -166,18 +176,18 @@ export class AnalyticsService {
    */
   calculateActiveStreak(
     user: { currentStreak: number; lastWorkoutDate: Date | null },
-    trainingDays?: number | null
+    trainingDays?: number | null,
   ): number {
     if (!user.lastWorkoutDate) return 0;
-    
+
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const last = new Date(user.lastWorkoutDate);
     last.setHours(0, 0, 0, 0);
-    
+
     const diffDays = Math.round((now.getTime() - last.getTime()) / 86_400_000);
     const allowedGap = this.getMaxAllowedGap(trainingDays);
-    
+
     return diffDays > allowedGap ? 0 : user.currentStreak;
   }
 
@@ -235,7 +245,12 @@ export class AnalyticsService {
     const since = new Date(Date.now() - days * 86_400_000);
     const logs = await prisma.userExerciseLog.findMany({
       where: {
-        session: { userId, startedAt: { gte: since }, completedStatus: true, isDeleted: false },
+        session: {
+          userId,
+          startedAt: { gte: since },
+          completedStatus: true,
+          isDeleted: false,
+        },
         isDeleted: false,
       },
       include: {
@@ -267,22 +282,27 @@ export class AnalyticsService {
       if (muscles.length === 0) continue;
 
       // 1. Calculate sum of weights for this specific exercise
-      const emWeights = muscles.map(em => {
+      const emWeights = muscles.map((em) => {
         const baseWeight = ROLE_WEIGHTS[em.role] ?? 0.5;
-        const finalWeight = em.activationMultiplier !== 1.0 && em.activationMultiplier > 0
-          ? em.activationMultiplier
-          : baseWeight;
+        const finalWeight =
+          em.activationMultiplier !== 1.0 && em.activationMultiplier > 0
+            ? em.activationMultiplier
+            : baseWeight;
         return { name: em.muscle.name, weight: finalWeight };
       });
 
-      const exerciseTotalWeight = emWeights.reduce((sum, item) => sum + item.weight, 0);
+      const exerciseTotalWeight = emWeights.reduce(
+        (sum, item) => sum + item.weight,
+        0,
+      );
 
       // 2. Allocate log volume proportional to muscle weights
       if (exerciseTotalWeight > 0) {
         for (const item of emWeights) {
           const weightedVolume = (volume * item.weight) / exerciseTotalWeight;
-          
-          muscleVolumes[item.name] = (muscleVolumes[item.name] ?? 0) + weightedVolume;
+
+          muscleVolumes[item.name] =
+            (muscleVolumes[item.name] ?? 0) + weightedVolume;
           totalVolume += weightedVolume;
         }
       }
@@ -350,7 +370,13 @@ export class AnalyticsService {
   async getDashboardStats(userId: string) {
     const ninetyDaysAgo = new Date(Date.now() - 90 * 86_400_000);
 
-    const [user, sessionCount, bodyMetrics, activityAggregation, sessionAggregation] = await Promise.all([
+    const [
+      user,
+      sessionCount,
+      bodyMetrics,
+      activityAggregation,
+      sessionAggregation,
+    ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -359,7 +385,12 @@ export class AnalyticsService {
           lastWorkoutDate: true,
           createdAt: true,
           onboarding: {
-            select: { bmr: true, tdee: true, activityLevel: true, trainingDaysPerWeek: true },
+            select: {
+              bmr: true,
+              tdee: true,
+              activityLevel: true,
+              trainingDaysPerWeek: true,
+            },
           },
         },
       }),
@@ -386,16 +417,18 @@ export class AnalyticsService {
       }),
     ]);
 
-    const totalActiveBurn = (activityAggregation._sum?.workoutBurn || 0);
-    const totalMinutes = Math.round((sessionAggregation._sum?.totalDurationSeconds || 0) / 60);
+    const totalActiveBurn = activityAggregation._sum?.workoutBurn || 0;
+    const totalMinutes = Math.round(
+      (sessionAggregation._sum?.totalDurationSeconds || 0) / 60,
+    );
 
     return {
       currentStreak: this.calculateActiveStreak(
-        { 
-          currentStreak: user?.currentStreak ?? 0, 
-          lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null 
+        {
+          currentStreak: user?.currentStreak ?? 0,
+          lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null,
         },
-        user?.onboarding?.trainingDaysPerWeek
+        user?.onboarding?.trainingDaysPerWeek,
       ),
       longestStreak: user?.longestStreak ?? 0,
       lastWorkoutDate: user?.lastWorkoutDate ?? null,
@@ -431,25 +464,31 @@ export class AnalyticsService {
     for (const log of session.exercises) {
       // Handle potential nested arrays (repDurationsSeconds is often number[][])
       const repDurs = Array.isArray(log.repDurationsSeconds)
-        ? (log.repDurationsSeconds as any).flat().filter((v: any) => typeof v === 'number')
+        ? (log.repDurationsSeconds as any)
+            .flat()
+            .filter((v: any) => typeof v === "number")
         : [];
       const restDurs = Array.isArray(log.restTimesSeconds)
-        ? (log.restTimesSeconds as any).flat().filter((v: any) => typeof v === 'number')
+        ? (log.restTimesSeconds as any)
+            .flat()
+            .filter((v: any) => typeof v === "number")
         : [];
-      
+
       totalActiveSeconds +=
         repDurs.reduce((a: number, b: number) => a + b, 0) +
         restDurs.reduce((a: number, b: number) => a + b, 0);
     }
 
-    const computedActiveMinutes = Math.round((totalActiveSeconds / 60) * 10) / 10;
-    
+    const computedActiveMinutes =
+      Math.round((totalActiveSeconds / 60) * 10) / 10;
+
     // Fallback: If no logs exist, estimate active time as 70% of total duration (assuming high intensity)
-    const finalActiveMinutes = computedActiveMinutes > 0
-      ? computedActiveMinutes
-      : session.totalDurationSeconds
-        ? Math.round((session.totalDurationSeconds * 0.7) / 6) / 10
-        : 0;
+    const finalActiveMinutes =
+      computedActiveMinutes > 0
+        ? computedActiveMinutes
+        : session.totalDurationSeconds
+          ? Math.round((session.totalDurationSeconds * 0.7) / 6) / 10
+          : 0;
 
     await prisma.userSession.update({
       where: { id: sessionId },
@@ -480,41 +519,57 @@ export class AnalyticsService {
   /**
    * Enhanced paginated workout history for a user with deep filtering.
    */
-  async getWorkoutHistory(userId: string, params: {
-    page?: number;
-    limit?: number;
-    status?: 'Completed' | 'Modified' | 'Skipped' | 'All';
-    dateRange?: 'Today' | 'Yesterday' | 'Last 7 Days' | 'Last 30 Days' | 'All';
-    workoutType?: string;
-  } = {}) {
-    const { page = 1, limit = 10, status = 'All', dateRange = 'All', workoutType } = params;
+  async getWorkoutHistory(
+    userId: string,
+    params: {
+      page?: number;
+      limit?: number;
+      status?: "Completed" | "Modified" | "Skipped" | "All";
+      dateRange?:
+        | "Today"
+        | "Yesterday"
+        | "Last 7 Days"
+        | "Last 30 Days"
+        | "All";
+      workoutType?: string;
+    } = {},
+  ) {
+    const {
+      page = 1,
+      limit = 10,
+      status = "All",
+      dateRange = "All",
+      workoutType,
+    } = params;
     const skip = (page - 1) * limit;
 
     const where: any = { userId, isDeleted: false, completedStatus: true };
 
     // 1. Filter by Status (based on successPercent thresholds)
-    if (status === 'Completed') where.successPercent = { gte: 80 };
-    else if (status === 'Modified') where.successPercent = { gte: 55, lt: 80 };
-    else if (status === 'Skipped') where.successPercent = { lt: 55 };
+    if (status === "Completed") where.successPercent = { gte: 80 };
+    else if (status === "Modified") where.successPercent = { gte: 55, lt: 80 };
+    else if (status === "Skipped") where.successPercent = { lt: 55 };
 
     // 2. Filter by Date Range
-    if (dateRange !== 'All') {
-      let from = new Date();
-      if (dateRange === 'Today') from.setHours(0, 0, 0, 0);
-      else if (dateRange === 'Yesterday') {
+    if (dateRange !== "All") {
+      const from = new Date();
+      if (dateRange === "Today") from.setHours(0, 0, 0, 0);
+      else if (dateRange === "Yesterday") {
         from.setDate(from.getDate() - 1);
         from.setHours(0, 0, 0, 0);
-        where.completedAt = { gte: from, lt: new Date(new Date().setHours(0, 0, 0, 0)) };
-      }
-      else if (dateRange === 'Last 7 Days') from.setDate(from.getDate() - 7);
-      else if (dateRange === 'Last 30 Days') from.setDate(from.getDate() - 30);
-      
-      if (dateRange !== 'Yesterday') where.completedAt = { gte: from };
+        where.completedAt = {
+          gte: from,
+          lt: new Date(new Date().setHours(0, 0, 0, 0)),
+        };
+      } else if (dateRange === "Last 7 Days") from.setDate(from.getDate() - 7);
+      else if (dateRange === "Last 30 Days") from.setDate(from.getDate() - 30);
+
+      if (dateRange !== "Yesterday") where.completedAt = { gte: from };
     }
 
     // 3. Filter by Workout Type (Split name)
-    if (workoutType && workoutType !== 'All') {
-      where.planned = { path: ['split'], equals: workoutType };
+    if (workoutType && workoutType !== "All") {
+      where.planned = { path: ["split"], equals: workoutType };
     }
 
     const [sessions, total] = await Promise.all([
@@ -610,8 +665,7 @@ export class AnalyticsService {
       const calcReps = Math.min(sessionMaxReps, 12);
       const estimated1RM =
         calcReps > 0 && calcReps < 37
-          ? Math.round(sessionMaxWeight * (36 / (37 - calcReps)) * 10) /
-            10
+          ? Math.round(sessionMaxWeight * (36 / (37 - calcReps)) * 10) / 10
           : sessionMaxWeight;
 
       // Upsert: Only update if the new maxWeightKg or maxVolume is higher
@@ -692,12 +746,15 @@ export class AnalyticsService {
     for (const s of allSessionsToday) {
       const fatigueF = s.fatigue ? s.fatigue / 5 : 1;
       const met = baseMet * (0.8 + Math.min(fatigueF, 1.25) * 0.4);
-      
+
       // Use activeMinutes as a fallback if totalDurationSeconds is missing
-      const durationSeconds = s.totalDurationSeconds ?? (s.activeMinutes ? s.activeMinutes * 60 : 0);
+      const durationSeconds =
+        s.totalDurationSeconds ?? (s.activeMinutes ? s.activeMinutes * 60 : 0);
       const hrs = durationSeconds / 3600;
-      
-      totalWorkoutBurnToday += Math.round(met * (s.user.onboarding?.weight ?? 70) * hrs);
+
+      totalWorkoutBurnToday += Math.round(
+        met * (s.user.onboarding?.weight ?? 70) * hrs,
+      );
     }
 
     const dailyBmr = session.user.onboarding.bmr || 2000;
@@ -732,10 +789,14 @@ export class AnalyticsService {
       orderBy: { maxWeightKg: "desc" },
     });
 
-    console.log(`🏆 [Analytics] getPersonalRecords for ${userId}: Found ${records.length} records.`);
+    console.log(
+      `🏆 [Analytics] getPersonalRecords for ${userId}: Found ${records.length} records.`,
+    );
     if (records.length > 0) {
       const topRecord = records[0];
-      console.log(`   Top Record: ${topRecord?.exercise?.name} - ${topRecord?.maxWeightKg}kg`);
+      console.log(
+        `   Top Record: ${topRecord?.exercise?.name} - ${topRecord?.maxWeightKg}kg`,
+      );
     }
 
     return records;
@@ -809,37 +870,38 @@ export class AnalyticsService {
    * maps to GET /analytics/profile-summary
    */
   async getProfileSummary(userId: string) {
-    const [user, sessionStats, prList, onboarding, uniqueExercises] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: { 
-          currentStreak: true, 
-          longestStreak: true, 
-          lastWorkoutDate: true,
-          onboarding: { select: { trainingDaysPerWeek: true } }
-        },
-      }),
-      prisma.userSession.aggregate({
-        where: { userId, completedStatus: true, isDeleted: false },
-        _count: { id: true },
-        _sum: { totalDurationSeconds: true },
-        _avg: { successPercent: true },
-      }),
-      prisma.personalRecord.findMany({
-        where: { userId },
-        include: { exercise: { select: { name: true } } },
-        orderBy: { maxWeightKg: "desc" },
-        take: 5,
-      }),
-      prisma.onboarding.findUnique({ where: { userId } }),
-      prisma.userExerciseLog.groupBy({
-        by: ["exerciseId"],
-        where: {
-          session: { userId, completedStatus: true, isDeleted: false },
-          isDeleted: false,
-        },
-      }),
-    ]);
+    const [user, sessionStats, prList, onboarding, uniqueExercises] =
+      await Promise.all([
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            currentStreak: true,
+            longestStreak: true,
+            lastWorkoutDate: true,
+            onboarding: { select: { trainingDaysPerWeek: true } },
+          },
+        }),
+        prisma.userSession.aggregate({
+          where: { userId, completedStatus: true, isDeleted: false },
+          _count: { id: true },
+          _sum: { totalDurationSeconds: true },
+          _avg: { successPercent: true },
+        }),
+        prisma.personalRecord.findMany({
+          where: { userId },
+          include: { exercise: { select: { name: true } } },
+          orderBy: { maxWeightKg: "desc" },
+          take: 5,
+        }),
+        prisma.onboarding.findUnique({ where: { userId } }),
+        prisma.userExerciseLog.groupBy({
+          by: ["exerciseId"],
+          where: {
+            session: { userId, completedStatus: true, isDeleted: false },
+            isDeleted: false,
+          },
+        }),
+      ]);
 
     // BMI
     const heightM = onboarding?.height ? onboarding.height / 100 : null;
@@ -859,14 +921,16 @@ export class AnalyticsService {
     return {
       stats: {
         totalWorkouts: sessionStats._count.id,
-        totalHours: Math.round((sessionStats._sum.totalDurationSeconds ?? 0) / 3600),
+        totalHours: Math.round(
+          (sessionStats._sum.totalDurationSeconds ?? 0) / 3600,
+        ),
         totalExercises: uniqueExercises.length,
         currentStreak: this.calculateActiveStreak(
-          { 
-            currentStreak: user?.currentStreak ?? 0, 
-            lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null 
+          {
+            currentStreak: user?.currentStreak ?? 0,
+            lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null,
           },
-          user?.onboarding?.trainingDaysPerWeek
+          user?.onboarding?.trainingDaysPerWeek,
         ),
         consistency: Math.round(sessionStats._avg.successPercent ?? 0),
         bmi,
@@ -924,47 +988,57 @@ export class AnalyticsService {
     for (const s of sessions) {
       if (!s.completedAt) continue;
       const dateKey = s.completedAt.toLocaleDateString("en-CA"); // YYYY-MM-DD
-      const label = s.completedAt.toLocaleDateString("en-US", { 
+      const label = s.completedAt.toLocaleDateString("en-US", {
         weekday: days <= 7 ? "short" : undefined,
         month: "short",
-        day: "numeric"
+        day: "numeric",
       });
 
-      dailyVolume[dateKey] = (dailyVolume[dateKey] || 0) + (s.totalVolumeKg || 0);
-      dailyDuration[dateKey] = (dailyDuration[dateKey] || 0) + (s.totalDurationSeconds || 0);
+      dailyVolume[dateKey] =
+        (dailyVolume[dateKey] || 0) + (s.totalVolumeKg || 0);
+      dailyDuration[dateKey] =
+        (dailyDuration[dateKey] || 0) + (s.totalDurationSeconds || 0);
       dateLabels[dateKey] = label;
     }
 
     const sortedDates = Object.keys(dailyVolume).sort();
-    const finalLabels = sortedDates.map(d => dateLabels[d]);
+    const finalLabels = sortedDates.map((d) => dateLabels[d]);
 
     let data: number[];
     switch (metric) {
       case "Tonnage":
-        data = sortedDates.map(d => Math.round(dailyVolume[d] ?? 0));
+        data = sortedDates.map((d) => Math.round(dailyVolume[d] ?? 0));
         break;
       case "Time":
-        data = sortedDates.map(d =>
-          Math.round((dailyDuration[d] ?? 0) / 360) / 10 // In hours with 1 decimal
+        data = sortedDates.map(
+          (d) => Math.round((dailyDuration[d] ?? 0) / 360) / 10, // In hours with 1 decimal
         );
         break;
-      case "Calories":
+      case "Calories": {
         // For calories, we need to query DailyCaloricLog instead of sessions if we want daily granularity
         const caloricLogs = await prisma.dailyCaloricLog.findMany({
           where: { userId, date: { gte: since } },
           orderBy: { date: "asc" },
         });
-        const caloricLabels = caloricLogs.map(l => l.date.toLocaleDateString("en-US", { weekday: "short" }));
-        const caloricData = caloricLogs.map(l => Math.round(l.workoutBurn ?? 0));
+        const caloricLabels = caloricLogs.map((l) =>
+          l.date.toLocaleDateString("en-US", { weekday: "short" }),
+        );
+        const caloricData = caloricLogs.map((l) =>
+          Math.round(l.workoutBurn ?? 0),
+        );
         return { labels: caloricLabels, datasets: [{ data: caloricData }] };
-      case "Weight":
+      }
+      case "Weight": {
         const weightLogs = await prisma.bodyMetrics.findMany({
           where: { userId, recordedAt: { gte: since }, isDeleted: false },
           orderBy: { recordedAt: "asc" },
         });
-        const weightLabels = weightLogs.map(l => l.recordedAt.toLocaleDateString("en-US", { weekday: "short" }));
-        const weightData = weightLogs.map(l => l.weightKg || 0);
+        const weightLabels = weightLogs.map((l) =>
+          l.recordedAt.toLocaleDateString("en-US", { weekday: "short" }),
+        );
+        const weightData = weightLogs.map((l) => l.weightKg || 0);
         return { labels: weightLabels, datasets: [{ data: weightData }] };
+      }
       default:
         data = sessions.map(() => 0);
     }
@@ -991,11 +1065,11 @@ export class AnalyticsService {
     const [user, sessions, caloricSummary, remainingCount] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { 
-          currentStreak: true, 
+        select: {
+          currentStreak: true,
           createdAt: true,
           lastWorkoutDate: true,
-          onboarding: { select: { tdee: true, trainingDaysPerWeek: true } } 
+          onboarding: { select: { tdee: true, trainingDaysPerWeek: true } },
         },
       }),
       prisma.userSession.findMany({
@@ -1043,7 +1117,8 @@ export class AnalyticsService {
         ? Math.round((sessions.length / totalWorkoutsInPeriod) * 100)
         : 0;
 
-    const todayStr: string | undefined = localDate ?? new Date().toISOString().split("T")[0];
+    const todayStr: string | undefined =
+      localDate ?? new Date().toISOString().split("T")[0];
     const todayBase = new Date(todayStr ?? ""); // Midnight UTC
 
     // To handle timezone shifts, we query a wider window and filter in-memory by date string
@@ -1055,26 +1130,26 @@ export class AnalyticsService {
         where: { userId, date: todayBase },
       }),
       prisma.userSession.findMany({
-        where: { 
-          userId, 
-          completedStatus: true, 
-          completedAt: { gte: bufferStart, lte: bufferEnd } 
+        where: {
+          userId,
+          completedStatus: true,
+          completedAt: { gte: bufferStart, lte: bufferEnd },
         },
-        select: { completedAt: true, activeMinutes: true }
-      })
+        select: { completedAt: true, activeMinutes: true },
+      }),
     ]);
 
     // Filter sessions that belong to the user's "Today" (based on UTC date string match)
-    const todaySessions = candidateSessions.filter(s => 
-      s.completedAt?.toISOString().split("T")[0] === todayStr
+    const todaySessions = candidateSessions.filter(
+      (s) => s.completedAt?.toISOString().split("T")[0] === todayStr,
     );
 
     const currentActiveStreak = this.calculateActiveStreak(
-      { 
-        currentStreak: user?.currentStreak ?? 0, 
-        lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null 
+      {
+        currentStreak: user?.currentStreak ?? 0,
+        lastWorkoutDate: (user?.lastWorkoutDate as Date | null) ?? null,
       },
-      user?.onboarding?.trainingDaysPerWeek
+      user?.onboarding?.trainingDaysPerWeek,
     );
 
     const response = {
@@ -1091,9 +1166,11 @@ export class AnalyticsService {
       createdAt: user?.createdAt ?? null,
       todayStats: {
         calories: Math.round(todayLog?.workoutBurn ?? 0),
-        activeMinutes: Math.round(todaySessions.reduce((a, s) => a + (s.activeMinutes ?? 0), 0)),
-        workoutCount: todaySessions.length
-      }
+        activeMinutes: Math.round(
+          todaySessions.reduce((a, s) => a + (s.activeMinutes ?? 0), 0),
+        ),
+        workoutCount: todaySessions.length,
+      },
     };
 
     // console.log(`📊 [Analytics] getSummary for ${userId} [${todayStr}]:`, JSON.stringify(response.todayStats, null, 2));

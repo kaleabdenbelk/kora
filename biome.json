@@ -25,7 +25,9 @@
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source",
-      "!**/convex/_generated"
+      "!**/convex/_generated",
+      "!packages/api/src/services/plan.service.js",
+      "!packages/db/test-json.js"
     ]
   },
   "formatter": {

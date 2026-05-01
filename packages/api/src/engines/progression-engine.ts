@@ -1,9 +1,16 @@
 import { z } from "zod";
 
+export interface LogEntry {
+  repsPerSet?: unknown;
+  weightsPerSet?: unknown;
+  rpePerSet?: unknown;
+  session?: { fatigue?: number };
+}
+
 // Generic interface to decouple from @prisma/client during testing
 export interface MinimalPrismaClient {
   userExerciseLog: {
-    findFirst(args: any): Promise<any>;
+    findFirst(args: unknown): Promise<LogEntry | null>;
   };
 }
 
@@ -73,9 +80,9 @@ export class ProgressionEngine {
     }
 
     // Security check: Ensure arrays are of expected type
-    const rawReps = latestLog.repsPerSet as any[];
-    const rawWeights = latestLog.weightsPerSet as any[];
-    const rawRpes = (latestLog.rpePerSet as any[]) || [];
+    const rawReps = (latestLog.repsPerSet as unknown[]) || [];
+    const rawWeights = (latestLog.weightsPerSet as unknown[]) || [];
+    const rawRpes = (latestLog.rpePerSet as unknown[]) || [];
 
     if (
       !Array.isArray(rawReps) ||
@@ -107,8 +114,7 @@ export class ProgressionEngine {
         : 8;
 
     const lastWeight = validWeights[0] || 0;
-    const sessionFatigue =
-      lastFatigue ?? (latestLog.session as any).fatigue ?? 5;
+    const sessionFatigue = lastFatigue ?? latestLog.session?.fatigue ?? 5;
 
     let nextWeight = lastWeight;
     let nextReps = plannedReps;

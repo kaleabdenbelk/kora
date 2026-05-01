@@ -5,7 +5,7 @@ async function testSurgicalUpdateFlow() {
   console.log("🚀 Starting Surgical Plan Update Verification Flow...");
 
   const planService = new PlanService();
-  const testUserId = "test-user-" + Date.now();
+  const testUserId = `test-user-${Date.now()}`;
 
   // 1. Setup User
   console.log(`👤 Creating test user: ${testUserId}`);
@@ -36,16 +36,24 @@ async function testSurgicalUpdateFlow() {
     ],
   });
 
-  console.log(`✅ Plan created. ID: ${initialPlan.id}. Sessions: ${(initialPlan as any).sessions?.length || "fetching..."}`);
-  
-  const initialSessions = await prisma.userSession.findMany({ where: { planId: initialPlan.id, isDeleted: false } });
+  console.log(
+    `✅ Plan created. ID: ${initialPlan.id}. Sessions: ${(initialPlan as any).sessions?.length || "fetching..."}`,
+  );
+
+  const initialSessions = await prisma.userSession.findMany({
+    where: { planId: initialPlan.id, isDeleted: false },
+  });
   console.log(`📊 Initial Sessions Count: ${initialSessions.length}`);
 
   // 3. Surgical Update
-  console.log("🔄 Performing surgical update (updating Day 1, Adding Day 5, Deleting Day 3)...");
-  
+  console.log(
+    "🔄 Performing surgical update (updating Day 1, Adding Day 5, Deleting Day 3)...",
+  );
+
   // Searching for a real exercise to ensure validation passes
-  const replacementEx = await prisma.exercise.findFirst({ where: { isDeleted: false } });
+  const replacementEx = await prisma.exercise.findFirst({
+    where: { isDeleted: false },
+  });
   if (!replacementEx) throw new Error("Seed data missing");
 
   await planService.createCustomPlan(testUserId, {
@@ -71,24 +79,35 @@ async function testSurgicalUpdateFlow() {
 
   const updatedPlan = await prisma.userPlan.findUnique({
     where: { id: initialPlan.id },
-    include: { sessions: { where: { isDeleted: false } } }
+    include: { sessions: { where: { isDeleted: false } } },
   });
 
   if (!updatedPlan) throw new Error("Plan vanished!");
-  
-  console.log(`✅ Plan name updated: ${updatedPlan.name === "Updated Plan Name"}`);
-  console.log(`📊 New Sessions Count: ${updatedPlan.sessions.length} (Expected 8: 2 sessions * 4 weeks)`);
-  
+
+  console.log(
+    `✅ Plan name updated: ${updatedPlan.name === "Updated Plan Name"}`,
+  );
+  console.log(
+    `📊 New Sessions Count: ${updatedPlan.sessions.length} (Expected 8: 2 sessions * 4 weeks)`,
+  );
+
   const day3Sessions = await prisma.userSession.findMany({
-    where: { planId: initialPlan.id, dayNumber: 3, isDeleted: false }
+    where: { planId: initialPlan.id, dayNumber: 3, isDeleted: false },
   });
   console.log(`🗑️ Day 3 sessions deleted/hidden: ${day3Sessions.length === 0}`);
 
-  const day1Session = updatedPlan.sessions.find(s => s.dayNumber === 1 && s.week === 1);
-  const isSurgical = (day1Session?.planned as any).name === "Modified Upper Body";
+  const day1Session = updatedPlan.sessions.find(
+    (s) => s.dayNumber === 1 && s.week === 1,
+  );
+  const isSurgical =
+    (day1Session?.planned as any).name === "Modified Upper Body";
   console.log(`✨ Day 1 session updated surgically: ${isSurgical}`);
 
-  if (updatedPlan.sessions.length === 8 && day3Sessions.length === 0 && isSurgical) {
+  if (
+    updatedPlan.sessions.length === 8 &&
+    day3Sessions.length === 0 &&
+    isSurgical
+  ) {
     console.log("🏆 SUCCESS: Surgical update flow verified!");
   } else {
     console.error("❌ FAILURE: Verification failed.");

@@ -1,11 +1,21 @@
 import prisma from "@kora/db";
 import { PlanService } from "./services/plan.service";
 
+interface ExerciseInPlan {
+  exerciseId: string;
+  name: string;
+}
+
+interface SessionInPlan {
+  name: string;
+  exercises: ExerciseInPlan[];
+}
+
 async function testFlow() {
   console.log("🚀 Starting Full Plan Customization Test Flow...");
 
   const planService = new PlanService();
-  const testUserId = "test-user-" + Date.now();
+  const testUserId = `test-user-${Date.now()}`;
 
   // 1. Create a dummy user and onboarding record
   // (Simulating the session creation as well)
@@ -32,7 +42,9 @@ async function testFlow() {
   // 2. Generate the AI plan (should be triggered by onboarding completion in the real app)
   console.log("🤖 Generating AI plan...");
   const initialPlan = await planService.generatePlan(testUserId);
-  console.log(`✅ Plan generated: ${initialPlan.name} (Source: ${initialPlan.source})`);
+  console.log(
+    `✅ Plan generated: ${initialPlan.name} (Source: ${initialPlan.source})`,
+  );
 
   // 3. Search for a replacement exercise by name
   // This simulates the frontend search
@@ -47,18 +59,25 @@ async function testFlow() {
   });
 
   if (foundExercises.length === 0) {
-    throw new Error(`Exercise "${searchQuery}" not found in database. Did you seed?`);
+    throw new Error(
+      `Exercise "${searchQuery}" not found in database. Did you seed?`,
+    );
   }
   const replacementExercise = foundExercises[0];
-  console.log(`🎯 Found: ${replacementExercise.name} (ID: ${replacementExercise.id})`);
+  console.log(
+    `🎯 Found: ${replacementExercise.name} (ID: ${replacementExercise.id})`,
+  );
 
   // 4. Get the active plan and its sessions to find an exercise to replace
   const activePlan = await planService.getActivePlan(testUserId);
   const firstSession = activePlan?.sessions[0];
-  const oldExerciseId = (firstSession?.planned as any).exercises[0].exerciseId;
-  const oldExerciseName = (firstSession?.planned as any).exercises[0].name;
+  const firstProposed = firstSession?.planned as unknown as SessionInPlan;
+  const oldExerciseId = firstProposed.exercises[0].exerciseId;
+  const oldExerciseName = firstProposed.exercises[0].name;
 
-  console.log(`🔄 Replacing "${oldExerciseName}" with "${replacementExercise.name}" in all future sessions...`);
+  console.log(
+    `🔄 Replacing "${oldExerciseName}" with "${replacementExercise.name}" in all future sessions...`,
+  );
 
   // 5. Replace the exercise
   const updateResult = await planService.replaceExercise(
@@ -66,18 +85,23 @@ async function testFlow() {
     initialPlan.id,
     oldExerciseId,
     replacementExercise.id,
-    "all"
+    "all",
   );
 
-  console.log(`✅ Update result: ${updateResult.updatedSessions} sessions updated.`);
+  console.log(
+    `✅ Update result: ${updateResult.updatedSessions} sessions updated.`,
+  );
 
   // 6. Verify the change in the database
   const refreshedPlan = await planService.getActivePlan(testUserId);
   const updatedSession = refreshedPlan?.sessions[0];
-  const firstExercise = (updatedSession?.planned as any).exercises[0];
+  const updatedProposed = updatedSession?.planned as unknown as SessionInPlan;
+  const firstExercise = updatedProposed.exercises[0];
 
   if (firstExercise.exerciseId === replacementExercise.id) {
-    console.log("✨ SUCCESS: The exercise was successfully replaced in the session plan!");
+    console.log(
+      "✨ SUCCESS: The exercise was successfully replaced in the session plan!",
+    );
   } else {
     console.error("❌ FAILURE: Exercise ID doesn't match.");
   }

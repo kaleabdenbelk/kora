@@ -44,7 +44,15 @@ export function createRateLimiter(
   prefix: string,
   failOpen = true,
 ) {
-  return async ({ ctx, next, path }: { ctx: any; next: any; path: string }) => {
+  return async ({
+    ctx,
+    next,
+    path,
+  }: {
+    ctx: { session?: { user?: { id?: string } } };
+    next: (args: { ctx: unknown }) => Promise<unknown>;
+    path: string;
+  }) => {
     // If there is no user session, skip rate limiting or apply IP based fallback
     // Since this is meant for protected procedures, user ID should be present.
     const userId = ctx.session?.user?.id || "anonymous";

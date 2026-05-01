@@ -7,7 +7,7 @@ import prisma from "@kora/db";
  * @param days - Number of days to include in the analytics.
  * @returns An array of { bodyPart: string, percentage: number } objects.
  */
-async function getBodyPartPercentages(userId: string, days = 30) {
+async function _getBodyPartPercentages(userId: string, days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
   const logs = await prisma.userExerciseLog.findMany({
@@ -29,8 +29,12 @@ async function getBodyPartPercentages(userId: string, days = 30) {
   let totalVolume = 0;
 
   for (const log of logs) {
-    const weights = Array.isArray(log.weightsPerSet) ? (log.weightsPerSet as number[]) : [];
-    const reps = Array.isArray(log.repsPerSet) ? (log.repsPerSet as number[]) : [];
+    const weights = Array.isArray(log.weightsPerSet)
+      ? (log.weightsPerSet as number[])
+      : [];
+    const reps = Array.isArray(log.repsPerSet)
+      ? (log.repsPerSet as number[])
+      : [];
     const volume = weights.reduce((sum, w, i) => sum + w * (reps[i] ?? 0), 0);
 
     if (volume === 0) continue;

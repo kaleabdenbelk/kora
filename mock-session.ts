@@ -1,6 +1,5 @@
-import { PrismaClient } from "./packages/db/prisma/generated/client";
 import dotenv from "dotenv";
-import path from "path";
+import { PrismaClient } from "./packages/db/prisma/generated/client";
 
 dotenv.config();
 
@@ -42,7 +41,7 @@ async function createMockSession() {
       dayNumber: 1,
       week: 1,
       planned: {},
-      startedAt: new Date(Date.now() - 3600000), 
+      startedAt: new Date(Date.now() - 3600000),
       completedAt: new Date(),
       completedStatus: true,
       totalVolumeKg: 5000,
@@ -55,7 +54,7 @@ async function createMockSession() {
   await prisma.userExerciseLog.create({
     data: {
       sessionId: session.id,
-      exerciseId: "1", 
+      exerciseId: "1",
       plannedSets: 3,
       plannedReps: "5",
       actualSets: 3,
@@ -68,7 +67,7 @@ async function createMockSession() {
   await prisma.userExerciseLog.create({
     data: {
       sessionId: session.id,
-      exerciseId: "2", 
+      exerciseId: "2",
       plannedSets: 3,
       plannedReps: "10",
       actualSets: 3,

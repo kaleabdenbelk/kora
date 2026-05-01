@@ -1,18 +1,28 @@
+import { AnalyticsService } from "@kora/api/services/analytics.service";
 import { PlanService } from "@kora/api/services/plan.service";
-import { SessionService } from "@kora/api/services/session.service";
+import {
+  type CompleteSessionData,
+  SessionService,
+} from "@kora/api/services/session.service";
 import prisma from "@kora/db";
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { AnalyticsService } from "@kora/api/services/analytics.service";
 
 export interface SyncMutation {
   id: string;
   type: string;
-  payload: any;
+  payload: unknown;
 }
 
 export interface SyncPayload {
   lastSyncTimestamp?: string | null;
   mutations?: SyncMutation[];
+}
+
+export interface SyncDeltas {
+  plans: unknown[];
+  sessions: unknown[];
+  exercises: unknown[];
+  profile: unknown | null;
 }
 
 @Injectable()
@@ -40,13 +50,17 @@ export class SyncService {
         try {
           // Process different mutation types
           if (mutation.type === "SESSION_COMPLETE") {
-            const data = mutation.payload;
+            const data = mutation.payload as CompleteSessionData;
             await this.sessionService.completeSession(userId, data);
             console.log(
               `[SyncService] Successfully processed SESSION_COMPLETE for session ${data.sessionId}`,
             );
           } else if (mutation.type === "PROFILE_UPDATE") {
-            const data = mutation.payload;
+            const data = mutation.payload as {
+              name?: string;
+              image?: string;
+              onboarding?: Record<string, unknown>;
+            };
             console.log(
               `[SyncService] Processing PROFILE_UPDATE for ${userId}`,
             );
@@ -91,12 +105,7 @@ export class SyncService {
     }
 
     // 2. Fetch server deltas (records modified since lastSyncTimestamp)
-    const deltas: {
-      plans: any[];
-      sessions: any[];
-      exercises: any[];
-      profile: any | null;
-    } = {
+    const deltas: SyncDeltas = {
       plans: [],
       sessions: [],
       exercises: [],
@@ -216,7 +225,7 @@ export class SyncService {
         if (updatedSessions.length > 0) {
           // Flatten to avoid duplicates if they were already in updatedPlans
           const existingSessionIds = new Set(
-            deltas.plans.flatMap((p: { sessions: { id: string }[] }) =>
+            (deltas.plans as { sessions: { id: string }[] }[]).flatMap((p) =>
               p.sessions.map((s) => s.id),
             ),
           );

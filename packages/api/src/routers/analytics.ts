@@ -8,19 +8,28 @@ export const analyticsRouter = router({
   getMuscleDistribution: protectedProcedure
     .input(z.object({ days: z.number().default(30) }))
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getMuscleDistribution(ctx.session.user.id, input.days);
+      return await analyticsService.getMuscleDistribution(
+        ctx.session.user.id,
+        input.days,
+      );
     }),
 
   getWorkoutFocusBreakdown: protectedProcedure
     .input(z.object({ days: z.number().default(30) }))
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getWorkoutFocusBreakdown(ctx.session.user.id, input.days);
+      return await analyticsService.getWorkoutFocusBreakdown(
+        ctx.session.user.id,
+        input.days,
+      );
     }),
 
   getActivityHeatmap: protectedProcedure
     .input(z.object({ days: z.number().default(365) }))
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getActivityHeatmap(ctx.session.user.id, input.days);
+      return await analyticsService.getActivityHeatmap(
+        ctx.session.user.id,
+        input.days,
+      );
     }),
 
   getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
@@ -32,13 +41,18 @@ export const analyticsRouter = router({
       z.object({
         page: z.number().default(1),
         limit: z.number().default(10),
-        status: z.enum(['Completed', 'Modified', 'Skipped', 'All']).optional(),
-        dateRange: z.enum(['Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days', 'All']).optional(),
+        status: z.enum(["Completed", "Modified", "Skipped", "All"]).optional(),
+        dateRange: z
+          .enum(["Today", "Yesterday", "Last 7 Days", "Last 30 Days", "All"])
+          .optional(),
         workoutType: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getWorkoutHistory(ctx.session.user.id, input);
+      return await analyticsService.getWorkoutHistory(
+        ctx.session.user.id,
+        input,
+      );
     }),
 
   getPersonalRecords: protectedProcedure.query(async ({ ctx }) => {
@@ -78,12 +92,16 @@ export const analyticsRouter = router({
 
   getSummary: protectedProcedure
     .input(
-      z.object({ 
+      z.object({
         filter: z.string(),
-        localDate: z.string().optional()
-      })
+        localDate: z.string().optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
-      return await analyticsService.getSummary(ctx.session.user.id, input.filter, input.localDate);
+      return await analyticsService.getSummary(
+        ctx.session.user.id,
+        input.filter,
+        input.localDate,
+      );
     }),
 });

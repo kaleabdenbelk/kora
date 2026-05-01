@@ -28,8 +28,10 @@ async function main() {
 
   let markdown = "# Workout Plan for kaleabdenbel1921@gmail.com\n\n";
 
-  // Cast planJson to any to avoid type issues if it's stored as JsonValue
-  const planJson = plan.planJson as any;
+  interface PlanJson {
+    programName?: string;
+  }
+  const planJson = plan.planJson as unknown as PlanJson;
   markdown += `**Program Name**: ${planJson?.programName || "Unknown Program"}\n`;
   markdown += `**Start Date**: ${plan.startDate}\n`;
   markdown += `**End Date**: ${plan.endDate}\n\n`;
@@ -42,8 +44,17 @@ async function main() {
       markdown += `## Week ${currentWeek}\n\n`;
     }
 
-    // cast planned to any to access properties safely
-    const planned = session.planned as any;
+    interface PlannedSession {
+      name?: string;
+      exercises?: Array<{
+        name: string;
+        sets: number;
+        reps: string;
+        restTime: number;
+        intensity?: string;
+      }>;
+    }
+    const planned = session.planned as unknown as PlannedSession;
 
     markdown += `### Day ${session.dayNumber}: ${planned?.name || "Workout"}\n`;
     if (planned?.exercises && planned.exercises.length > 0) {

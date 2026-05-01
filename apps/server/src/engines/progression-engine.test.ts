@@ -1,5 +1,5 @@
+import type { MinimalPrismaClient } from "@kora/api/engines/progression-engine";
 import { ProgressionEngine } from "@kora/api/engines/progression-engine";
-import type { PrismaClient } from "@kora/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Prisma
@@ -7,7 +7,7 @@ const prismaMock = {
   userExerciseLog: {
     findFirst: vi.fn(),
   },
-} as unknown as PrismaClient;
+} as unknown as MinimalPrismaClient;
 
 describe("ProgressionEngine", () => {
   let engine: ProgressionEngine;
@@ -36,7 +36,7 @@ describe("ProgressionEngine", () => {
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 8, 8],
       session: { fatigue: 5 },
-    } as unknown as any);
+    });
 
     const result = await engine.calculateNextTargets("user1", "ex1", {
       plannedSets: 3,
@@ -54,7 +54,7 @@ describe("ProgressionEngine", () => {
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 9, 9],
       session: { fatigue: 5 },
-    } as unknown as any);
+    });
 
     const result = await engine.calculateNextTargets("user1", "ex1", {
       plannedSets: 3,
@@ -72,7 +72,7 @@ describe("ProgressionEngine", () => {
       weightsPerSet: [20, 20, 20],
       rpePerSet: [10, 10, 10],
       session: { fatigue: 5 },
-    } as unknown as any);
+    });
 
     const result = await engine.calculateNextTargets("user1", "ex1", {
       plannedSets: 3,
@@ -90,7 +90,7 @@ describe("ProgressionEngine", () => {
       weightsPerSet: [20, 20, 20],
       rpePerSet: [8, 8, 8],
       session: { fatigue: 9 },
-    } as unknown as any);
+    });
 
     const result = await engine.calculateNextTargets("user1", "ex1", {
       plannedSets: 3,

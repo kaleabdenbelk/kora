@@ -17,17 +17,17 @@
  *  5. Cleans up the seeded sessions so it is safe to run repeatedly.
  */
 
-import prisma from "../packages/db/src/index.js";
 import { AnalyticsService } from "../packages/api/src/services/analytics.service.js";
+import prisma from "../packages/db/src/index.js";
 
 // ── ANSI colour helpers ──────────────────────────────────────────────────────
-const RESET  = "\x1b[0m";
-const BOLD   = "\x1b[1m";
-const DIM    = "\x1b[2m";
-const GREEN  = "\x1b[42m\x1b[30m";   // bg green  – worked out (1 session)
-const YELLOW = "\x1b[43m\x1b[30m";   // bg yellow – double session
-const RED    = "\x1b[41m\x1b[37m";   // bg red    – missed (was a planned day)
-const GREY   = "\x1b[100m\x1b[37m";  // bg grey   – rest day
+const RESET = "\x1b[0m";
+const BOLD = "\x1b[1m";
+const DIM = "\x1b[2m";
+const GREEN = "\x1b[42m\x1b[30m"; // bg green  – worked out (1 session)
+const YELLOW = "\x1b[43m\x1b[30m"; // bg yellow – double session
+const RED = "\x1b[41m\x1b[37m"; // bg red    – missed (was a planned day)
+const GREY = "\x1b[100m\x1b[37m"; // bg grey   – rest day
 
 function colorTile(label: string, color: string) {
   return `${color} ${label} ${RESET}`;
@@ -35,7 +35,9 @@ function colorTile(label: string, color: string) {
 
 // ── Date helpers ─────────────────────────────────────────────────────────────
 function toDateStr(d: Date): string {
-  return d.toISOString().split("T")[0]!;
+  const iso = d.toISOString().split("T")[0];
+  if (!iso) return "";
+  return iso;
 }
 
 function addDays(base: Date, n: number): Date {
@@ -93,11 +95,11 @@ function renderCalendar(
 
   // Print header
   console.log(`\n${BOLD}  ── Activity Heatmap — last 30 days ──${RESET}\n`);
-  console.log("  " + DAYS.map((d) => `${DIM}${d}${RESET}`).join("  "));
+  console.log(`  ${DAYS.map((d) => `${DIM}${d}${RESET}`).join("  ")}`);
 
   // Pad to the first day of the week
   const firstDow = start.getDay();
-  let line = "  " + "     ".repeat(firstDow);
+  let line = `  ${"     ".repeat(firstDow)}`;
 
   for (let i = 0; i < 30; i++) {
     const d = addDays(start, i);
@@ -110,14 +112,14 @@ function renderCalendar(
     if (count >= 2) {
       tile = colorTile(dayLabel, YELLOW); // double session
     } else if (count === 1) {
-      tile = colorTile(dayLabel, GREEN);  // normal workout
+      tile = colorTile(dayLabel, GREEN); // normal workout
     } else if (isPlanned) {
-      tile = colorTile(dayLabel, RED);    // planned but missed
+      tile = colorTile(dayLabel, RED); // planned but missed
     } else {
-      tile = colorTile(dayLabel, GREY);   // rest day
+      tile = colorTile(dayLabel, GREY); // rest day
     }
 
-    line += tile + "  ";
+    line += `${tile}  `;
 
     // New row after Saturday
     if (d.getDay() === 6) {
@@ -206,7 +208,9 @@ async function main() {
   // 2. Build schedule
   const { plannedDays, workedOutDays } = buildSchedule(today);
 
-  console.log(`\nSeeding ${workedOutDays.size} workout days for ${user.name ?? email}...`);
+  console.log(
+    `\nSeeding ${workedOutDays.size} workout days for ${user.name ?? email}...`,
+  );
   const seededIds = await seedSessions(user.id, plan.id, workedOutDays);
   console.log(`  ✓ Created ${seededIds.length} session(s).`);
 
@@ -219,7 +223,9 @@ async function main() {
   const totalSessions = Object.values(heatmap).reduce((a, b) => a + b, 0);
   const missedDays = [...plannedDays].filter((d) => !heatmap[d]).length;
 
-  console.log(`\nHeatmap result (${totalWorkoutDays} active days, ${totalSessions} sessions, ${missedDays} missed planned days):`);
+  console.log(
+    `\nHeatmap result (${totalWorkoutDays} active days, ${totalSessions} sessions, ${missedDays} missed planned days):`,
+  );
   console.log(JSON.stringify(heatmap, null, 2));
 
   // 5. Render calendar

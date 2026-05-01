@@ -1,5 +1,5 @@
-import prisma from "../packages/db/src/index";
 import { AnalyticsService } from "../packages/api/src/services/analytics.service";
+import prisma from "../packages/db/src/index";
 
 async function reprocess() {
   const email = "westen2114@gmail.com";
@@ -7,10 +7,10 @@ async function reprocess() {
     where: { email },
     include: {
       userSessions: {
-        orderBy: { completedAt: 'desc' },
-        take: 1
-      }
-    }
+        orderBy: { completedAt: "desc" },
+        take: 1,
+      },
+    },
   });
 
   if (!user || !user.userSessions[0]) {
@@ -20,13 +20,13 @@ async function reprocess() {
 
   const sessionId = user.userSessions[0].id;
   const analytics = new AnalyticsService();
-  
+
   console.log(`🚀 Reprocessing analytics for session: ${sessionId}...`);
   await analytics.processSessionEngine(user.id, sessionId);
-  
+
   const updated = await prisma.userSession.findUnique({
     where: { id: sessionId },
-    select: { totalVolumeKg: true, activeMinutes: true }
+    select: { totalVolumeKg: true, activeMinutes: true },
   });
 
   console.log("✅ Results:");
@@ -34,4 +34,6 @@ async function reprocess() {
   console.log("- Active Minutes:", updated?.activeMinutes, "min");
 }
 
-reprocess().catch(console.error).finally(() => prisma.$disconnect());
+reprocess()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

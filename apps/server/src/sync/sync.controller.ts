@@ -7,6 +7,7 @@ import {
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
+import type { Request } from "express";
 import type { SyncPayload } from "./sync.service";
 import { SyncService } from "./sync.service";
 
@@ -15,7 +16,7 @@ export class SyncController {
   constructor(@Inject(SyncService) private readonly syncService: SyncService) {}
 
   @Post()
-  async sync(@Body() body: SyncPayload, @Req() req: any) {
+  async sync(@Body() body: SyncPayload, @Req() req: Request) {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       throw new UnauthorizedException("Authentication required for sync");

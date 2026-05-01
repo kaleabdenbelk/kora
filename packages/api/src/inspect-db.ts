@@ -12,7 +12,9 @@ async function inspect() {
 
   console.log(`Found ${plans.length} active plans.`);
   for (const p of plans) {
-    console.log(`Plan: "${p.name}" (ID: ${p.id}) - Total Sessions: ${p._count.sessions} - Active: ${p.isActive}`);
+    console.log(
+      `Plan: "${p.name}" (ID: ${p.id}) - Total Sessions: ${p._count.sessions} - Active: ${p.isActive}`,
+    );
   }
 }
 

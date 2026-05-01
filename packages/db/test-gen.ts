@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { PlanService } from '../api/src/services/plan.service';
+import { PrismaClient } from "@prisma/client";
+import { PlanService } from "../api/src/services/plan.service";
 
 const prisma = new PrismaClient();
 

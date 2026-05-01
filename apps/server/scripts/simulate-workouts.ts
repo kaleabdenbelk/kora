@@ -54,10 +54,17 @@ async function main() {
   const prs = await analytics.getPersonalRecords(userId);
 
   console.log("\nDashboard Stats:", JSON.stringify(stats, null, 2));
+  interface PR {
+    exercise?: { name: string };
+    maxWeightKg: number;
+    maxVolume: number;
+    estimated1RM: number;
+  }
+
   console.log(
     "\nPersonal Records:",
     JSON.stringify(
-      prs.map((p: Record<string, any>) => ({
+      prs.map((p: PR) => ({
         exercise: p.exercise?.name || "Unknown",
         weight: p.maxWeightKg,
         volume: p.maxVolume,
@@ -82,7 +89,16 @@ async function simulateSession(
 
   if (!session) return;
 
-  const planned = session.planned as Record<string, any>;
+  interface PlannedWorkout {
+    exercises: Array<{
+      exerciseId: string;
+      sets: number;
+      reps: string;
+      intensity: string;
+    }>;
+  }
+
+  const planned = session.planned as unknown as PlannedWorkout;
   const startedAt = new Date();
   const completedAt = new Date(startedAt.getTime() + 45 * 60 * 1000); // 45 mins session
 
